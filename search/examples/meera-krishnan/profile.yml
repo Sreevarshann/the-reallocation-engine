@@ -1,0 +1,43 @@
+# FICTIONAL EXAMPLE PERSONA — safe to commit. Added 2026fa for the
+# newgrad-de-ml-optwindow contribution (declared exception in that PR).
+# profile.yml only: no resumes/ CV, resume.example.json, or gaps.md — no repo tool requires them.
+# Exercises: F-1 student whose OPT has NOT started; the timeline gate is the
+# 90-day unemployment window from OPT start, not the OPT end date.
+candidate:
+  name: Meera Krishnan
+  email: meera.krishnan@example.com
+  phone: "(617) 555-0182"
+  linkedin: ""
+  github: ""
+  location: Boston, MA
+needs_sponsorship: true
+target_role:
+  primary: Data Engineer
+  secondary: Machine Learning Engineer
+  description: Entry-level data and ML engineering roles at companies with H-1B sponsorship history; any size, any industry.
+  excluded: senior-only roles (networking targets, not applications)
+education:
+  degree: MS, Data Science (STEM)
+  institution: Lakeshore Institute of Technology (fictional)
+  graduation_date: 2026-12-12
+visa:
+  type: F-1
+  current_status: "F-1 student — OPT not started"
+  ead_start_date: 2027-01-15
+  opt_end_date: null          # not set — missing stays missing
+  unemployment_days_used: 0
+  unemployment_ceiling: 90
+  unemployment_window_end: 2027-04-15
+  buffer_target: null         # not set
+  stem_eligible: true
+  stem_extension_planned: null  # undecided
+  notes: The 90-day clock starts at OPT start; the timeline gate closes for any run after 2027-02-14 under a 60-day hiring lag.
+search_assumptions:
+  hiring_lag_days: 60         # ASSUMPTION (your-input), not a record
+fit_self_assessment:          # your-input, per role type
+  data_engineer: 0.7
+  ml_engineer: 0.5
+geography:
+  current_location: Boston, MA
+  open_to_remote: true
+  open_to_relocation: any US location
