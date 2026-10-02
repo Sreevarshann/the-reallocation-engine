@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Revised 2026-10-02: normalizer import switched from sec-all-quarters.py to entity-resolution.py because the former requires pandas; output verified identical (see CHANGE-BRIEF R1).
 """Orientation analysis: candidate role-type definitions vs real repo data (2026fa, Sreevarshann).
 Run from the repo root:  python3 course/2026fa/submissions/Sreevarshann/notes/candidate-analysis.py
 Read-only: reads public repo data (80 Days CSV, BLS compact, SEC Form D samples); writes nothing.
@@ -25,9 +26,9 @@ CANDIDATES = {
 SCORER_FIELDS = ['Total Approvals', 'Total Denials', 'Approval_Rate', 'latest_funding_date', 'median_salary_offered']
 
 # reuse the maintained SEC normalizer (guarded by __main__, safe to import)
-spec = importlib.util.spec_from_file_location('secq', 'scripts/sec/sec-all-quarters.py')
-secq = importlib.util.module_from_spec(spec); spec.loader.exec_module(secq)
-norm = secq.normalize_company_name
+spec = importlib.util.spec_from_file_location('entity_resolution', 'scripts/sec/entity-resolution.py')
+er = importlib.util.module_from_spec(spec); spec.loader.exec_module(er)
+norm = er.normalize_company_name
 
 def kw_regex(kws):
     # case-insensitive; keyword must not be glued to other letters (so "ml engineer" != "html engineer")
