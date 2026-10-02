@@ -1,0 +1,10 @@
+company_name,top_job_titles_sponsored,Total Approvals,Total Denials,Approval_Rate,latest_funding_date,latest_funding_stage
+"Alpha Data Example, Inc.","['Data Engineer', 'Senior Data Engineer']",120.0,2.0,98.36065573770492,2025-11-03,Series B
+Beta ML Example LLC,['Machine Learning Engineer'],25.0,0.0,100.0,,
+Gamma Network Example Corp,"['Senior Data Engineer', 'Staff Machine Learning Engineer']",300.0,10.0,96.7741935483871,2021-05-14,Series D+
+Delta Thin Example,['Data Engineer II'],1.0,0.0,100.0,2024-12-01,Seed
+Epsilon Garbled Example,['ML Engineer'],n/a,0.0,,2023-03-09,Series A
+Zeta Recruiting Example,['Data Engineering Recruiter'],4.0,0.0,100.0,2022-08-30,Series A
+Eta Both Example,"['Data Engineer', 'Deep Learning Engineer']",60.0,4.0,93.75,2025-02-11,Series C
+Theta Unrelated Example,['Accountant'],10.0,1.0,90.9090909090909,2020-01-01,Seed
+Iota No Titles Example,,,,,2019-06-30,Pre-Seed

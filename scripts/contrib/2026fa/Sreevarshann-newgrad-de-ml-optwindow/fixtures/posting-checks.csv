@@ -1,0 +1,8 @@
+company,role_type,url,date_checked,status
+Alpha Data Example,data_engineer,https://example.com/jobs/alpha-de,2026-10-01,open
+Beta ML Example,ml_engineer,https://example.com/jobs/beta-ml,2026-09-20,open
+Eta Both Example,data_engineer,https://example.com/jobs/eta-de,2026-09-30,closed
+Gamma Network Example Corp,data_engineer,https://example.com/jobs/gamma-de,2026-10-01,open
+Alpha Data Examples,data_engineer,https://example.com/jobs/alpha-typo,2026-10-01,open
+Kappa Missing Example,ml_engineer,https://example.com/jobs/kappa-ml,2026-10-01,not found
+Zeta Recruiting Example,data_engineer,https://example.com/jobs/zeta-de,2026-10-01,maybe

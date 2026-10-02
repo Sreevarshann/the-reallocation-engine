@@ -1,0 +1,11 @@
+{
+  "_comment": "Fixture copy of the fields this prototype needs from search/examples/meera-krishnan/profile.yml (fictional persona). JSON because the Python stdlib has no YAML parser; tests assert these values match profile.yml.",
+  "persona_id": "meera-krishnan",
+  "source_profile": "search/examples/meera-krishnan/profile.yml",
+  "graduation_date": "2026-12-12",
+  "opt_start_date": "2027-01-15",
+  "unemployment_window_end": "2027-04-15",
+  "unemployment_days_used": 0,
+  "hiring_lag_days": 60,
+  "fit": {"data_engineer": 0.7, "ml_engineer": 0.5}
+}
