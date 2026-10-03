@@ -1,0 +1,87 @@
+# Break attempts — newgrad-de-ml-optwindow — 2026-10-02
+# Interpreter: $PY = <scratchpad>/cleanvenv/bin/python (Python 3.13.9, isolated venv, no site packages; pandas not importable)
+# Broken inputs and run outputs live in /tmp/break-2026-10-02/ (never in the repo).
+# Redaction: the repo's absolute path is replaced with <repo> in the traceback below; nothing else is edited.
+# Attempts a-d use --out-root under /tmp so overwrite protection (attempt e) does not pre-empt them.
+#
+# SUMMARY
+# id | attempt                                   | exit | outcome                                                                 | failed cleanly, no invented value?
+# a  | persona whose 90-day window ended 2026-08-30 | 2    | HALT at G2; run-log.json (status=halted) written, no report, no scorer   | yes
+# b  | posting check with date_checked 2026-13-45 | 0    | AMGEN row rejected ("date_checked not an ISO date"); AMGEN -> verify-posting "unchecked"; rest of run proceeds | yes (row rejected, not repaired)
+# c  | posting-check file with unknown column    | 2    | HALT naming the unknown column; run-log.json only                        | yes
+# d  | posting-check file path does not exist    | 1    | unhandled FileNotFoundError traceback; no outputs, no run-log            | no invented value, but NOT clean: defect (run.py hashes inputs before its error handling)
+# e  | rerun into existing runs/2026-10-02       | 3    | refused to overwrite; committed folder untouched (git: no tracked changes) | yes
+# f  | BROKEN-g5-ignores-liveness mutant test    | 0    | test passes = the suite's G5 check halts the unchecked role, the mutant lets it through | yes
+#
+# Follow-up evidence (same session):
+#   a: /tmp/break-2026-10-02/out/a/2026-10-02/ contains only run-log.json; status "halted"
+#   b: rejected_checks = [('AMGEN INC', 'date_checked not an ISO date')]; AMGEN placement = verify_posting, "unchecked: no posting check recorded"
+#   c: /tmp/break-2026-10-02/out/c/2026-10-02/ contains only run-log.json
+#   d: /tmp/break-2026-10-02/out/d does not exist
+#   e: git status / git diff show no tracked changes
+#
+# REAL OUTPUT
+=== a
+$ $PY scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02 --persona /tmp/break-2026-10-02/persona-window-ended.json --out-root /tmp/break-2026-10-02/out/a
+HALT: G2 timeline: unemployment window ended 2026-08-30; timeline cannot be evaluated
+run-log: /tmp/break-2026-10-02/out/a/2026-10-02/run-log.json
+[exit 2]
+
+=== b
+$ $PY scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02 --checks /tmp/break-2026-10-02/checks-bad-date.csv --out-root /tmp/break-2026-10-02/out/b
+plan: {'scoreable': 3, 'blocked': 0, 'network': 53, 'verify_posting': 61, 'rejected_checks': 1, 'cannot_verify': 66}  provisional=True
+roles.json: 3 role(s) -> /tmp/break-2026-10-02/out/b/2026-10-02/roles.json
+scorer: $ npm run score -- /tmp/break-2026-10-02/out/b/2026-10-02/roles.json --out-dir /tmp/break-2026-10-02/out/b/2026-10-02
+
+> the-reallocation-engine@1.0.0 score
+> node scripts/score/role-scorer.mjs /tmp/break-2026-10-02/out/b/2026-10-02/roles.json --out-dir /tmp/break-2026-10-02/out/b/2026-10-02
+
+✓ scored 3 roles → Apply 0 · Consider 0 · Skip 3 (skip 100%)
+  ../../../../../tmp/break-2026-10-02/out/b/2026-10-02/role-scores.json  +  ../../../../../tmp/break-2026-10-02/out/b/2026-10-02/role-scores.md
+report: /tmp/break-2026-10-02/out/b/2026-10-02/report.md
+run-log: /tmp/break-2026-10-02/out/b/2026-10-02/run-log.json
+[exit 0]
+
+=== c
+$ $PY scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02 --checks /tmp/break-2026-10-02/checks-unknown-column.csv --out-root /tmp/break-2026-10-02/out/c
+HALT: posting-check file columns: missing [], unknown ['vibe']; required ['company', 'role_type', 'url', 'date_checked', 'status', 'checked_by'], optional ['what_was_seen', 'tool_result', 'tool_reason', 'tool_run_date']
+run-log: /tmp/break-2026-10-02/out/c/2026-10-02/run-log.json
+[exit 2]
+
+=== d
+$ $PY scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02 --checks /tmp/break-2026-10-02/does-not-exist.csv --out-root /tmp/break-2026-10-02/out/d
+Traceback (most recent call last):
+  File "<repo>/scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py", line 353, in <module>
+    sys.exit(main(sys.argv[1:]))
+             ~~~~^^^^^^^^^^^^^^
+  File "<repo>/scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py", line 290, in main
+    "inputs": {k: {"path": core._rel(p), "sha256": sha256(p)} for k, p in inputs.items()},
+                                                   ~~~~~~^^^
+  File "<repo>/scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py", line 32, in sha256
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+                          ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/anaconda3/lib/python3.13/pathlib/_abc.py", line 625, in read_bytes
+    with self.open(mode='rb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.13/pathlib/_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/break-2026-10-02/does-not-exist.csv'
+[exit 1]
+
+=== e
+$ $PY scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02
+refusing to overwrite existing run outputs in course/2026fa/submissions/Sreevarshann/runs/2026-10-02 (use --overwrite)
+[exit 3]
+
+=== f
+$ $PY -m unittest discover -s scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/tests -k suite_catches_broken_mutant -v
+test_suite_catches_broken_mutant (test_core.G5Test.test_suite_catches_broken_mutant)
+The BROKEN mutant lets a role with no liveness through; this suite's check must expose it. ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.014s
+
+OK
+[exit 0]
+
