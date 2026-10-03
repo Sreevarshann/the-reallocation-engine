@@ -112,3 +112,9 @@ This is my honest log of attempts, checks, and human vs. AI contributions for th
 - **What I checked or changed:** Mirrored CI with a PyYAML-only environment (verify passed); documented the --out-root rerun command in the README; fixed all four partial items.
 - **Human vs AI:** Claude Code ran the clone, found the PyYAML issue, and did the audit; Claude (chat) recommended mirroring CI and fixing the README; I approved both. This entry was drafted by Claude (chat) and reviewed by me.
 - **Trace:** 93bb449, and this commit.
+
+### Entry 10
+- **Date/time:** 2026-10-02, late night
+- **Step:** History rewrite before the first push
+- **What happened / what I changed:** Before the first push, Claude Code flagged two lines whose wording could be misread as describing the author rather than the fictional persona. I chose to rewrite history before pushing rather than push as-is; SHAs were remapped (see TEST-REPORT map). Drafted by Claude (chat), reviewed by me.
+- **Trace:** backup/pre-rewrite (local, old tip 27a383a); TEST-REPORT "History rewrite before first push (2026-10-02)".
