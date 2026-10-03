@@ -1,0 +1,152 @@
+{
+  "_scorer": "bayesian-role-scorer",
+  "_chapter": 11,
+  "generated": "2026-10-03",
+  "config": {
+    "weights": {
+      "sponsorship": 0.35,
+      "fit": 0.3,
+      "role_quality": 0
+    },
+    "apply_threshold": 0.3,
+    "consider_floor": 0.2,
+    "gate_zero": 0.05,
+    "soft_sponsorship_tiers": [
+      "likely",
+      "possible",
+      "unknown"
+    ]
+  },
+  "profile_needs_sponsorship": true,
+  "roles": [
+    {
+      "role_id": "femtosense:ml_engineer",
+      "company": "FEMTOSENSE INC",
+      "title": "ml_engineer",
+      "composite": 0,
+      "recommendation": "Skip",
+      "machine_recommendation": "Skip",
+      "reason": "gated: liveness ≈ 0.000 (a closed gate zeroes the composite regardless of votes)",
+      "override": null,
+      "trace": {
+        "votes": [
+          {
+            "factor": "sponsorship",
+            "value": 0.4,
+            "weight": 0.35,
+            "contribution": 0.14,
+            "source": "your-input"
+          },
+          {
+            "factor": "fit",
+            "value": 0.5,
+            "weight": 0.3,
+            "contribution": 0.15,
+            "source": "your-input"
+          }
+        ],
+        "vote_sum": 0.29,
+        "gates": [
+          {
+            "factor": "liveness",
+            "multiplier": 0,
+            "source": "model-judgment"
+          },
+          {
+            "factor": "timeline",
+            "multiplier": 1,
+            "source": "your-input"
+          }
+        ],
+        "gate_product": 0,
+        "arithmetic": "(0.4·0.35 + 0.5·0.3) × 0 × 1 = 0.000"
+      }
+    },
+    {
+      "role_id": "human:data_engineer",
+      "company": "HUMAN INC",
+      "title": "data_engineer",
+      "composite": 0,
+      "recommendation": "Skip",
+      "machine_recommendation": "Skip",
+      "reason": "gated: liveness ≈ 0.000 (a closed gate zeroes the composite regardless of votes)",
+      "override": null,
+      "trace": {
+        "votes": [
+          {
+            "factor": "sponsorship",
+            "value": 0.8,
+            "weight": 0.35,
+            "contribution": 0.28,
+            "source": "your-input"
+          },
+          {
+            "factor": "fit",
+            "value": 0.7,
+            "weight": 0.3,
+            "contribution": 0.21,
+            "source": "your-input"
+          }
+        ],
+        "vote_sum": 0.49,
+        "gates": [
+          {
+            "factor": "liveness",
+            "multiplier": 0,
+            "source": "model-judgment"
+          },
+          {
+            "factor": "timeline",
+            "multiplier": 1,
+            "source": "your-input"
+          }
+        ],
+        "gate_product": 0,
+        "arithmetic": "(0.8·0.35 + 0.7·0.3) × 0 × 1 = 0.000"
+      }
+    },
+    {
+      "role_id": "overjet:ml_engineer",
+      "company": "OVERJET INC",
+      "title": "ml_engineer",
+      "composite": 0,
+      "recommendation": "Skip",
+      "machine_recommendation": "Skip",
+      "reason": "gated: liveness ≈ 0.000 (a closed gate zeroes the composite regardless of votes)",
+      "override": null,
+      "trace": {
+        "votes": [
+          {
+            "factor": "sponsorship",
+            "value": 0.6,
+            "weight": 0.35,
+            "contribution": 0.21,
+            "source": "your-input"
+          },
+          {
+            "factor": "fit",
+            "value": 0.5,
+            "weight": 0.3,
+            "contribution": 0.15,
+            "source": "your-input"
+          }
+        ],
+        "vote_sum": 0.36,
+        "gates": [
+          {
+            "factor": "liveness",
+            "multiplier": 0,
+            "source": "model-judgment"
+          },
+          {
+            "factor": "timeline",
+            "multiplier": 1,
+            "source": "your-input"
+          }
+        ],
+        "gate_product": 0,
+        "arithmetic": "(0.6·0.35 + 0.5·0.3) × 0 × 1 = 0.000"
+      }
+    }
+  ]
+}

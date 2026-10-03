@@ -1,0 +1,89 @@
+[
+  {
+    "role_id": "femtosense:ml_engineer",
+    "company": "FEMTOSENSE INC",
+    "title": "ml_engineer",
+    "sponsorship": {
+      "p": 0.4,
+      "tier": "possible",
+      "source": "your-input"
+    },
+    "fit": {
+      "p": 0.5,
+      "source": "your-input"
+    },
+    "liveness": {
+      "factor": 0.0,
+      "source": "model-judgment"
+    },
+    "timeline": {
+      "factor": 1.0,
+      "source": "your-input"
+    },
+    "evidence": {
+      "total_approvals": {
+        "value": 6.0,
+        "label": "record",
+        "source": "data/80-days-to-stay/80-days-csv/mapped_student_employment_targets_v3.csv#L9574"
+      }
+    }
+  },
+  {
+    "role_id": "human:data_engineer",
+    "company": "HUMAN INC",
+    "title": "data_engineer",
+    "sponsorship": {
+      "p": 0.8,
+      "tier": "Proven",
+      "source": "your-input"
+    },
+    "fit": {
+      "p": 0.7,
+      "source": "your-input"
+    },
+    "liveness": {
+      "factor": 0.0,
+      "source": "model-judgment"
+    },
+    "timeline": {
+      "factor": 1.0,
+      "source": "your-input"
+    },
+    "evidence": {
+      "total_approvals": {
+        "value": 1382.0,
+        "label": "record",
+        "source": "data/80-days-to-stay/80-days-csv/mapped_student_employment_targets_v3.csv#L12630"
+      }
+    }
+  },
+  {
+    "role_id": "overjet:ml_engineer",
+    "company": "OVERJET INC",
+    "title": "ml_engineer",
+    "sponsorship": {
+      "p": 0.6,
+      "tier": "likely",
+      "source": "your-input"
+    },
+    "fit": {
+      "p": 0.5,
+      "source": "your-input"
+    },
+    "liveness": {
+      "factor": 0.0,
+      "source": "model-judgment"
+    },
+    "timeline": {
+      "factor": 1.0,
+      "source": "your-input"
+    },
+    "evidence": {
+      "total_approvals": {
+        "value": 48.0,
+        "label": "record",
+        "source": "data/80-days-to-stay/80-days-csv/mapped_student_employment_targets_v3.csv#L19395"
+      }
+    }
+  }
+]
