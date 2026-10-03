@@ -137,3 +137,133 @@ The committed run in `course/2026fa/submissions/Sreevarshann/runs/2026-10-02/` (
 1. **The `harness-regression` CI job fails for every PR.** It calls six harness scripts; four do not exist: `scripts/test/gate-behavior-harness.mjs`, `scripts/test/fuzz-invariants.mjs`, `scripts/gates/gate-behavior-harness.mjs`, `scripts/score/scorer-harness.mjs`.
 2. **The working-tree PII scan fails on `main`.** `node scripts/pii-scan.mjs` flags an npm package author's email address in the tracked `package-lock.json`. The branch-history scan (`--diff main`) is clean for this contribution.
 3. **`scripts/score/role-scorer.mjs` has no exports** and runs `main()` on load (line 185), so the import route CONTRIBUTING.md documents (`CONFIG`, `SRC`, `applyProfile`, `scoreRole`) cannot work; this contribution uses the CLI.
+
+## Fresh-clone check
+
+Run 2026-10-02 (22:55–23:10 local) on a fresh clone of branch `contrib/2026fa-Sreevarshann-newgrad-de-ml-optwindow` at commit `31be53a`, made with `git clone --branch contrib/2026fa-Sreevarshann-newgrad-de-ml-optwindow <repo> /tmp/fresh-check` (cloned from the local repository because the branch is not pushed), followed by `npm install` (exit 0). Two interpreters, both throwaway virtual environments in `<scratchpad>`:
+
+- **clean** — `<scratchpad>/cleanvenv`: Python 3.13.9, standard library only (no pandas, no PyYAML). Used for the prototype and its tests.
+- **CI-like** — `<scratchpad>/civenv`: Python 3.13.9 plus only PyYAML 6.0.3, mirroring CI's `pip install pyyaml`. Used for `npm run verify`.
+
+**npm run verify needs PyYAML, which CI installs (verify.yml line 25, contrib-gate.yml line 22); the prototype and its tests need only the stdlib and ran in the clean interpreter.** With the clean interpreter, `npm run verify` fails at the manifest check (`ModuleNotFoundError: No module named 'yaml'`); the same failure reproduces in the main working copy with the clean interpreter, so it is an environment requirement of the repo's `scripts/manifest-check.mjs`, not a defect of this contribution. Earlier "verify passes" results in this report were run with Anaconda's Python, which ships PyYAML.
+
+`npm install` also modified `package-lock.json` in the fresh clone (left untouched; not committed), confirming that the same pre-session change in the working copy came from a local `npm install`. A single-branch clone has no local `main`, so `git branch main origin/main` was run before `pii-scan --diff main`.
+
+| Check (in `/tmp/fresh-check`) | Interpreter | Result |
+|---|---|---|
+| README prototype command exactly as written | clean | exit 3 — refuses to overwrite the committed `runs/2026-10-02` (correct protection) |
+| same command with `--out-root /tmp/fresh-check-run` | clean | exit 0; `roles.json`, `role-scores.json`, `role-scores.md` byte-identical to the committed run |
+| README test command | clean | `Ran 58 tests … OK` |
+| `node scripts/conformance.mjs scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/` | — | ✓ 7 files |
+| `npm run verify` | CI-like (PyYAML) | exit 0 — conformance 167 files ✓; manifest check ✓ (3 pre-existing warnings) |
+| `npm run doctor` | — | ✓ runnable; no private/PII paths tracked |
+| `node scripts/pii-scan.mjs` | — | exit 1 — only the pre-existing `package-lock.json` finding on `main` |
+| `node scripts/pii-scan.mjs --diff main` | — | exit 0 — clean |
+
+Real output (one redaction: the email address in the working-tree pii-scan line is replaced with a description):
+
+```text
+$ python3 -c "import sys; print(sys.version.split()[0], \"venv:\", sys.prefix != sys.base_prefix)"
+3.13.9 venv: True
+[exit 0]
+
+$ python3 -c "import pandas"
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import pandas
+ModuleNotFoundError: No module named 'pandas'
+[exit 1]
+
+$ python3 scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py
+refusing to overwrite existing run outputs in course/2026fa/submissions/Sreevarshann/runs/2026-10-02 (use --overwrite)
+[exit 3]
+
+$ python3 scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --out-root /tmp/fresh-check-run
+plan: {'scoreable': 3, 'blocked': 0, 'network': 53, 'verify_posting': 61, 'rejected_checks': 0, 'cannot_verify': 66}  provisional=True
+roles.json: 3 role(s) -> /tmp/fresh-check-run/2026-10-02/roles.json
+scorer: $ npm run score -- /tmp/fresh-check-run/2026-10-02/roles.json --out-dir /tmp/fresh-check-run/2026-10-02
+
+> the-reallocation-engine@1.0.0 score
+> node scripts/score/role-scorer.mjs /tmp/fresh-check-run/2026-10-02/roles.json --out-dir /tmp/fresh-check-run/2026-10-02
+
+✓ scored 3 roles → Apply 0 · Consider 0 · Skip 3 (skip 100%)
+  ../../../tmp/fresh-check-run/2026-10-02/role-scores.json  +  ../../../tmp/fresh-check-run/2026-10-02/role-scores.md
+report: /tmp/fresh-check-run/2026-10-02/report.md
+run-log: /tmp/fresh-check-run/2026-10-02/run-log.json
+[exit 0]
+# byte compare vs committed runs/2026-10-02: identical: roles.json · identical: role-scores.json · identical: role-scores.md
+
+$ python3 -m unittest discover -s scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/tests -b
+Ran 58 tests in 8.039s
+
+OK
+
+$ node scripts/conformance.mjs scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/
+conformance: 7 files (1 md · 5 py · 1 json)
+✓ all conform (machine half of P4). Adequacy is still the human gate.
+[exit 0]
+
+$ npm run verify    # CI-like interpreter: PyYAML only
+> the-reallocation-engine@1.0.0 verify
+> node scripts/conformance.mjs && node scripts/manifest-check.mjs
+
+conformance: 167 files (88 md · 41 py · 30 js · 4 json · 4 sh)
+✓ all conform (machine half of P4). Adequacy is still the human gate.
+MANIFEST CHECK — The Reallocation Engine
+==========================================
+
+WARN (3):
+  W1 ignore path not in .gitignore: archive/
+  W2 private path not gitignored (PII/secret risk): private/
+  W2 private path not gitignored (PII/secret risk): data/ats/
+
+✓ manifest check passed (3 warnings)
+[exit 0]
+
+$ npm run doctor | tail -12
+PRIVACY (no personal data committed)
+  ✓ no private/PII paths are tracked
+
+RECIPES (33)
+  with lifecycle frontmatter: 33   missing: 0
+  by status: DRAFT 28 · RUNNABLE-SAMPLE 4 · RUNNABLE-LIVE  # DRAFT | SPECIFIED | RUNNABLE-SAMPLE | RUNNABLE-LIVE | VERIFIED 1
+  open TODOs: 318 declared (in frontmatter) · 318 [TODO markers in bodies
+
+SUMMARY
+  environment: ✓ runnable
+  recipes: 33/33 carry lifecycle frontmatter — all tracked
+  next: continue
+[exit 0]
+
+$ node scripts/pii-scan.mjs
+pii-scan: 1 finding(s) — see DATA_CONTRACT.md §Zero-Conditions
+
+  [email] package-lock.json — <an npm package author's email address; redacted here so this report does not itself trip the scan>
+
+If a finding is a false positive (fictional data outside the sanctioned dirs),
+move it under search/examples/ or resumes/ rather than allowlisting it here.
+[exit 1]
+
+$ git branch main origin/main
+branch 'main' set up to track 'origin/main'.
+[exit 0]
+
+$ node scripts/pii-scan.mjs --diff main
+pii-scan: clean ✓
+[exit 0]
+```
+
+The README now documents the overwrite refusal and the rerun/demo command (`--out-root /tmp/reallocation-demo`); that exact command was run in the fresh clone with the clean interpreter: exit 0, scorer outputs byte-identical to the committed run.
+
+### Literal baseline
+
+```text
+$ npm run score -- data/examples/ch11-roles.json --out-dir course/2026fa/submissions/Sreevarshann/runs/baseline-ch11
+> the-reallocation-engine@1.0.0 score
+> node scripts/score/role-scorer.mjs data/examples/ch11-roles.json --out-dir course/2026fa/submissions/Sreevarshann/runs/baseline-ch11
+
+✓ scored 5 roles → Apply 2 · Consider 1 · Skip 2 (skip 40%)
+  course/2026fa/submissions/Sreevarshann/runs/baseline-ch11/role-scores.json  +  course/2026fa/submissions/Sreevarshann/runs/baseline-ch11/role-scores.md
+```
+
+Exit 0. Roles, composites, and recommendations match the tracked `data/examples/role-scores.json`; `data/examples/` untouched; the only change was the new `course/2026fa/submissions/Sreevarshann/runs/baseline-ch11/` folder.

@@ -22,7 +22,13 @@ From the repo root (Python 3, standard library only; Node for the scorer):
 
     python3 scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py
 
+A run refuses to overwrite an existing run folder for the same date (exit 3, "refusing to overwrite existing run outputs"). The committed run for 2026-10-02 is already in `course/2026fa/submissions/Sreevarshann/runs/2026-10-02/`, so to rerun or demo it without touching that folder, write to a temp folder instead:
+
+    python3 scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02 --out-root /tmp/reallocation-demo
+
 Options: `--run-date YYYY-MM-DD` (default today), `--persona`, `--checks`, `--out-root`, `--overwrite` (an existing run folder is never replaced without it).
+
+Environment: the prototype and its tests need only the Python 3 standard library (no pandas, no PyYAML). The repo-wide `npm run verify` needs **PyYAML** (`pip install pyyaml`), because `scripts/manifest-check.mjs` parses `.ai/manifest.yaml` with it; CI installs it the same way. That requirement belongs to `npm run verify` only, not to this prototype.
 
 ## Inputs
 
