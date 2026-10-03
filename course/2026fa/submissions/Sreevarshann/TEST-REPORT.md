@@ -98,11 +98,11 @@ Full commands and real output: `course/2026fa/submissions/Sreevarshann/runs/brea
 | a | persona whose 90-day window ended 2026-08-30 | 2 | HALT at G2; only `run-log.json` (status `halted`) | yes |
 | b | posting check with `date_checked` 2026-13-45 | 0 | AMGEN row rejected; AMGEN → verify-posting "unchecked"; rest of run proceeds | yes — rejected, not repaired |
 | c | posting-check file with an unknown column | 2 | HALT naming `vibe`; only `run-log.json` | yes |
-| d | posting-check file path does not exist | before fix: 1 · after fix: 2 | before: unhandled `FileNotFoundError` traceback, no outputs · after (`f3ddb9a`): `HALT: input file not found: posting_checks = …`; only `run-log.json` (status `halted`) | before: no invented value, not clean · **after: yes** |
+| d | posting-check file path does not exist | before fix: 1 · after fix: 2 | before: unhandled `FileNotFoundError` traceback, no outputs · after (`2cb57e8`): `HALT: input file not found: posting_checks = …`; only `run-log.json` (status `halted`) | before: no invented value, not clean · **after: yes** |
 | e | rerun into the existing `runs/2026-10-02` | 3 | "refusing to overwrite existing run outputs …"; committed folder untouched | yes |
 | f | `BROKEN-g5-ignores-liveness` mutant test | 0 | test passes: the real G5 halts the unchecked role, the mutant lets it through | yes |
 
-**Defect from attempt d — fixed in `f3ddb9a`:** `run.py` computed each input's SHA-256 before its `GateHalt` handling, so a missing input file raised a raw traceback. It now checks every input exists first and, on a missing file, writes `run-log.json` with status `halted` and a message naming the path, exits 2, and writes no report. Covered by `test_missing_input_file_halts_cleanly`; the rerun of attempt d is appended to the break-attempts file under "(d) after fix".
+**Defect from attempt d — fixed in `2cb57e8`:** `run.py` computed each input's SHA-256 before its `GateHalt` handling, so a missing input file raised a raw traceback. It now checks every input exists first and, on a missing file, writes `run-log.json` with status `halted` and a message naming the path, exits 2, and writes no report. Covered by `test_missing_input_file_halts_cleanly`; the rerun of attempt d is appended to the break-attempts file under "(d) after fix".
 
 ## Diff scope: `git diff --stat main...HEAD`
 
@@ -119,7 +119,7 @@ No protected path is touched (`logs/RUN_LOG.md`, `package.json`, `package-lock.j
 
 ## Interpreter correction
 
-The committed run in `course/2026fa/submissions/Sreevarshann/runs/2026-10-02/` (commit `bc723e6`) was meant to use the clean interpreter. A symlink added inside the clean environment created a loop, and the shell fell through to the Anaconda `python3`, which does have pandas. The prototype imports only the standard library, so this did not change its behaviour, but the statement "ran with the clean interpreter" was wrong. The loop was fixed, and a rerun with the clean interpreter produced byte-identical `roles.json`, `role-scores.json`, and `role-scores.md`; `report.md` and `run-log.json` differ only in the command line and output paths, which record the temp folder. The 57-test run happened before the symlink change and was unaffected.
+The committed run in `course/2026fa/submissions/Sreevarshann/runs/2026-10-02/` (commit `bf8b65d`) was meant to use the clean interpreter. A symlink added inside the clean environment created a loop, and the shell fell through to the Anaconda `python3`, which does have pandas. The prototype imports only the standard library, so this did not change its behaviour, but the statement "ran with the clean interpreter" was wrong. The loop was fixed, and a rerun with the clean interpreter produced byte-identical `roles.json`, `role-scores.json`, and `role-scores.md`; `report.md` and `run-log.json` differ only in the command line and output paths, which record the temp folder. The 57-test run happened before the symlink change and was unaffected.
 
 ## What each gate requires a human to judge
 
@@ -140,7 +140,7 @@ The committed run in `course/2026fa/submissions/Sreevarshann/runs/2026-10-02/` (
 
 ## Fresh-clone check
 
-Run 2026-10-02 (22:55–23:10 local) on a fresh clone of branch `contrib/2026fa-Sreevarshann-newgrad-de-ml-optwindow` at commit `31be53a`, made with `git clone --branch contrib/2026fa-Sreevarshann-newgrad-de-ml-optwindow <repo> /tmp/fresh-check` (cloned from the local repository because the branch is not pushed), followed by `npm install` (exit 0). Two interpreters, both throwaway virtual environments in `<scratchpad>`:
+Run 2026-10-02 (22:55–23:10 local) on a fresh clone of branch `contrib/2026fa-Sreevarshann-newgrad-de-ml-optwindow` at commit `689f5ab`, made with `git clone --branch contrib/2026fa-Sreevarshann-newgrad-de-ml-optwindow <repo> /tmp/fresh-check` (cloned from the local repository because the branch is not pushed), followed by `npm install` (exit 0). Two interpreters, both throwaway virtual environments in `<scratchpad>`:
 
 - **clean** — `<scratchpad>/cleanvenv`: Python 3.13.9, standard library only (no pandas, no PyYAML). Used for the prototype and its tests.
 - **CI-like** — `<scratchpad>/civenv`: Python 3.13.9 plus only PyYAML 6.0.3, mirroring CI's `pip install pyyaml`. Used for `npm run verify`.
@@ -270,7 +270,7 @@ Exit 0. Roles, composites, and recommendations match the tracked `data/examples/
 
 ## Updated diff stat (final)
 
-Real output of `git diff --stat main...HEAD` at commit `078458a`, taken immediately before the audit-gap commit. That commit adds no new files; it modifies five existing ones already listed below (the recipe, the card, this report, DOMAIN-JUSTIFICATION.md, FRICTIONAL.md). The earlier diff-stat section above (23 files) is left as it was.
+Real output of `git diff --stat main...HEAD` at commit `93bb449`, taken immediately before the audit-gap commit. That commit adds no new files; it modifies five existing ones already listed below (the recipe, the card, this report, DOMAIN-JUSTIFICATION.md, FRICTIONAL.md). The earlier diff-stat section above (23 files) is left as it was.
 
 ```text
 $ git diff --stat main...HEAD
@@ -309,3 +309,53 @@ $ git diff --stat main...HEAD
 ```
 
 Every path is under `course/2026fa/submissions/Sreevarshann/`, `scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/`, `recipes/cases/2026fa/Sreevarshann-newgrad-de-ml-optwindow.*`, `logs/runs/2026fa-Sreevarshann-1.md`, or the declared exception `search/examples/meera-krishnan/profile.yml`. `logs/RUN_LOG.md` and every other protected path are untouched.
+
+## History rewrite before first push (2026-10-02)
+
+Reason: remove wording that could be misread as describing the author rather than the fictional persona (DATA_CONTRACT §Zero-Conditions); done before any push.
+
+**What changed.** Eight lines, by exact string replacement, in every commit where they appeared — and nothing else:
+1. CHANGE-BRIEF.md, career-situation section — the persona-situation sentence now says the persona and all dates are fictional and names the situation type the recipe is designed for.
+2. DOMAIN-JUSTIFICATION.md, "Who and what situation" — same replacement sentence.
+3. SOURCES.md, "What Claude Code did" — "linkable to the author" instead of the earlier first-person wording.
+4. SOURCES.md, "What I decided" — "described the situation type the persona models (no personal details in the repo)".
+5. SUBMISSION.md, "Domain / situation" — prefixed "fictional persona —".
+6. DOMAIN-JUSTIFICATION.md, executive summary — the persona is described as a fictional new graduate; the graduation month is no longer stated there.
+7. FRICTIONAL.md, Entry 4 "What I tried" — now about the persona's target roles.
+8. CHANGE-BRIEF.md, career-situation table — STEM extension "not set for this persona".
+
+The persona's own dates (graduation 2026-12-12, OPT start 2027-01-15, window end 2027-04-15) were kept unchanged by decision; every document now states that the persona and all dates are fictional.
+
+**How.** `git filter-branch --tree-filter` over `main..HEAD` with a script doing only the eight exact replacements, and only where present. Before it ran, the old tip was saved as the local branch `backup/pre-rewrite` (at the old `27a383a`), kept until the first push is confirmed. The first two commits contain none of the lines and kept their SHAs; every later commit has a new SHA because its tree or its parent changed.
+
+**Verified after the rewrite.**
+- Across all 21 commits (full file trees) and all commit messages: 0 hits for each of the five removed phrases checked (the persona-situation sentence, the first-person wording in SOURCES.md, the stated graduation month, the first-person role-targeting line, and the undecided STEM-extension value).
+- Author and committer names, emails, dates, and full commit messages (including every `Co-Authored-By` line) are byte-identical to before for all 21 commits; every email is `85571922+Sreevarshann@users.noreply.github.com`.
+- `git diff backup/pre-rewrite HEAD`: 5 files, 8 insertions, 8 deletions — exactly the eight lines above.
+- Every SHA quoted in this report, WORKED-RUN, FRICTIONAL, the recipe, the card, and the run log was updated to its new value in a single follow-up commit; the old values now appear only in the table below. One exception by design: the commit message of `a56845e` still says "fix f3ddb9a", because commit messages were preserved unchanged.
+
+**Old → new SHA map**
+
+| Old | New | Status | Commit |
+|---|---|---|---|
+| `da4f71b` | `da4f71b` | unchanged | Record role-type candidate analysis (candidate C, seniority split) |
+| `9e27bb6` | `9e27bb6` | unchanged | Start FRICTIONAL log |
+| `b1127bd` | `84fa41d` | rewritten | Add first FRICTIONAL entries |
+| `90ede26` | `e28d507` | rewritten | Add fictional persona meera-krishnan (declared exception) |
+| `68413d8` | `292be57` | rewritten | Add CHANGE-BRIEF (pre-build predictions) |
+| `14411d3` | `01d07f1` | rewritten | Switch normalizer to stdlib-only entity-resolution.py (CHANGE-BRIEF R1) |
+| `2079aa6` | `f099636` | rewritten | Add prototype core and offline tests |
+| `01cde15` | `e06121c` | rewritten | CHANGE-BRIEF R2: timeline gate finding, G1/fit clarification |
+| `c1771bb` | `8cde854` | rewritten | Add AI-sourced posting checks (not human-verified) and ats:liveness cross-check (R3) |
+| `0c6c941` | `6202dc8` | rewritten | R4: record outranks model-judgment on posting status conflicts |
+| `4b08d46` | `806ce8a` | rewritten | R5: human check wins same-date ties |
+| `bc723e6` | `bf8b65d` | rewritten | Add end-to-end run (run.py) and first real run outputs |
+| `80aec36` | `d32daa0` | rewritten | Add recipe + card for newgrad-de-ml-optwindow (status held at DRAFT) |
+| `cdb5828` | `c9344b0` | rewritten | Add break attempts, TEST-REPORT, worked run, run log, justification outline |
+| `f3ddb9a` | `2cb57e8` | rewritten | Fix: run.py halts cleanly on missing input file (break attempt d) |
+| `d1031c2` | `a56845e` | rewritten | Record defect (d) fix f3ddb9a in TEST-REPORT, attestation, run log |
+| `3b11131` | `a7ef669` | rewritten | Add reflection, domain justification, FRICTIONAL entries (AI-drafted, reviewed by me) |
+| `31be53a` | `689f5ab` | rewritten | Add SOURCES.md; tidy layer wording in domain justification |
+| `078458a` | `93bb449` | rewritten | Final validation: literal baseline, fresh-clone check |
+| `1f8a715` | `3c27e92` | rewritten | Close audit gaps: lifecycle update, facts 6–8, final diff stat, trim justification; FRICTIONAL entry 9 |
+| `27a383a` | `e35e9fa` | rewritten | Add SUBMISSION.md (PR URL and SHA pending) |

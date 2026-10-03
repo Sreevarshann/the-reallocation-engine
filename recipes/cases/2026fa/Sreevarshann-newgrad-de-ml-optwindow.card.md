@@ -4,7 +4,7 @@
 
 **What this is.** The one-page guide for the person who has to decide whether to trust this tool's lists. **Why read it.** It says, in plain terms, what the tool can and cannot know before you spend an application hour on its advice. **What it found in run 1.** Of 64 entry-level candidate companies, 3 reached the scorer and all were skipped because their postings were reported gone; 61 need a posting checked first; 53 senior-only roles are networking targets. No posting was checked by a human, so nothing is final.
 
-**Lifecycle status:** DRAFT (held). The tool runs end to end on shipped sample data (commit bc723e6, run 2026-10-02), but the recipe stays at DRAFT until its 5 proposed additions are closed with evidence, a run-log entry exists, and a named human has read an audit of the sample run — see the agent twin for the exact rule.
+**Lifecycle status:** DRAFT (held). The tool runs end to end on shipped sample data (commit bf8b65d, run 2026-10-02), but the recipe stays at DRAFT until its 5 proposed additions are closed with evidence, a run-log entry exists, and a named human has read an audit of the sample run — see the agent twin for the exact rule.
 
 Update 2026-10-02: the run-log entry now exists; the recipe stays at DRAFT because its 5 proposed additions are still open and no named human has read an audit of the run.
 

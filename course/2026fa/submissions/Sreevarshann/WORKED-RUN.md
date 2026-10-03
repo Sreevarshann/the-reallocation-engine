@@ -225,7 +225,7 @@ Next improvement: a human verifies the postings for the 22 Proven-tier entry-eli
 | **Break a:** persona whose window ended 2026-08-30 | exit 2; `HALT: G2 timeline: unemployment window ended 2026-08-30 …`; only run-log.json | halt, no invented timeline |
 | **Break b:** posting check dated 2026-13-45 | exit 0; row rejected "date_checked not an ISO date"; AMGEN → verify-posting "unchecked" | row rejected, not repaired |
 | **Break c:** unknown column `vibe` | exit 2; HALT naming the column | halt |
-| **Break d:** posting-check path does not exist | before fix: exit 1, raw `FileNotFoundError` traceback, no outputs · after fix (`f3ddb9a`): exit 2, `HALT: input file not found: posting_checks = …`, only run-log.json | clean halt with a run log — met after the fix |
+| **Break d:** posting-check path does not exist | before fix: exit 1, raw `FileNotFoundError` traceback, no outputs · after fix (`2cb57e8`): exit 2, `HALT: input file not found: posting_checks = …`, only run-log.json | clean halt with a run log — met after the fix |
 | **Break e:** rerun into existing `runs/2026-10-02` | exit 3; "refusing to overwrite existing run outputs …"; no tracked changes | refusal |
 | **Break f:** `-k suite_catches_broken_mutant` | `Ran 1 test … OK` — real G5 halts the unchecked role, the mutant does not | suite catches the mutant |
 | `npm run doctor`, `npm run verify` (after) | both exit 0; doctor identical to before; conformance 167 files ✓; manifest ✓ (3 pre-existing warnings) | no regression |
@@ -241,17 +241,17 @@ Next improvement: a human verifies the postings for the 22 Proven-tier entry-eli
 - No run with a different persona or a different hiring-lag assumption.
 
 ### Broke during testing, fixed
-- **Normalizer import needed pandas** — `scripts/sec/sec-all-quarters.py` imports pandas at line 1; switched to the stdlib-only `scripts/sec/entity-resolution.py` (CHANGE-BRIEF R1, commit `14411d3`); outputs verified identical across 30,569 names.
-- **Unclosed-file warnings** in the Form D cross-check — fixed with a context manager before commit `2079aa6`.
-- **Scorer record mislabelled liveness** as `your-input` regardless of who checked — now passes the real label (commit `c1771bb`).
-- **Test-data column swap** — two R3 test rows had `checked_by` and `what_was_seen` in the wrong order, so an AI check read as human; test data fixed (commit `c1771bb`), no code changed to pass.
-- **An AI "open" status would have scored Apply on a dead link** (AMGEN, HTTP 404) — rule added: a contradicting record outranks a model-judgment status (CHANGE-BRIEF R4, commit `0c6c941`); two R3 tests that relied on the old behaviour were updated.
-- **Same-date tie took the first row in file order**, letting an AI check beat a human one — tie-break added (CHANGE-BRIEF R5, commit `4b08d46`).
-- **Timeline gate effectively a halt for this persona** — found, recorded as a prediction miss, kept by decision (CHANGE-BRIEF R2, commit `01cde15`); recompute proposed.
+- **Normalizer import needed pandas** — `scripts/sec/sec-all-quarters.py` imports pandas at line 1; switched to the stdlib-only `scripts/sec/entity-resolution.py` (CHANGE-BRIEF R1, commit `01d07f1`); outputs verified identical across 30,569 names.
+- **Unclosed-file warnings** in the Form D cross-check — fixed with a context manager before commit `f099636`.
+- **Scorer record mislabelled liveness** as `your-input` regardless of who checked — now passes the real label (commit `8cde854`).
+- **Test-data column swap** — two R3 test rows had `checked_by` and `what_was_seen` in the wrong order, so an AI check read as human; test data fixed (commit `8cde854`), no code changed to pass.
+- **An AI "open" status would have scored Apply on a dead link** (AMGEN, HTTP 404) — rule added: a contradicting record outranks a model-judgment status (CHANGE-BRIEF R4, commit `6202dc8`); two R3 tests that relied on the old behaviour were updated.
+- **Same-date tie took the first row in file order**, letting an AI check beat a human one — tie-break added (CHANGE-BRIEF R5, commit `806ce8a`).
+- **Timeline gate effectively a halt for this persona** — found, recorded as a prediction miss, kept by decision (CHANGE-BRIEF R2, commit `e06121c`); recompute proposed.
 - **Interpreter symlink loop** — the committed run fell through to Anaconda's Python; link restored, clean rerun reproduced identical scorer outputs.
 - **Commit author email** was a machine `.local` address — re-authored to the GitHub noreply address before any push.
 - **PII-scan finding introduced in FRICTIONAL.md** (a quoted npm author email) — amended before any push; branch-history scan clean.
-- **Break d: a missing input file raised a raw traceback** — `run.py` now checks every input exists before hashing and halts cleanly with a run log (commit `f3ddb9a`, test `test_missing_input_file_halts_cleanly`).
+- **Break d: a missing input file raised a raw traceback** — `run.py` now checks every input exists before hashing and halts cleanly with a run log (commit `2cb57e8`, test `test_missing_input_file_halts_cleanly`).
 
 ### Broke during testing, not yet fixed
 - None.
