@@ -56,6 +56,21 @@ class RunTest(unittest.TestCase):
         self.assertIn("unemployment window ended 2027-04-15", log["halt"])
         self.assertFalse((out / "report.md").exists())
 
+    def test_missing_input_file_halts_cleanly(self):
+        """Break attempt (d): a missing input file is a clean halt with a run log, not a traceback."""
+        missing = Path(self.tmp, "does-not-exist.csv")
+        code = run.main(self.args(missing), scorer=NEVER_CALLED)
+        self.assertEqual(code, 2)
+        out = Path(self.tmp, "2026-10-02")
+        log = json.loads((out / "run-log.json").read_text())
+        self.assertEqual(log["status"], "halted")
+        self.assertIn("input file not found: posting_checks = ", log["halt"])
+        self.assertIn("does-not-exist.csv", log["halt"])
+        self.assertFalse(log["inputs"]["posting_checks"]["exists"])
+        self.assertTrue(log["inputs"]["persona"]["exists"])
+        self.assertFalse((out / "report.md").exists())
+        self.assertFalse((out / "roles.json").exists())
+
     def test_refuses_to_overwrite_existing_run(self):
         checks = write_checks([])
         self.assertEqual(run.main(self.args(checks), scorer=NEVER_CALLED), 0)

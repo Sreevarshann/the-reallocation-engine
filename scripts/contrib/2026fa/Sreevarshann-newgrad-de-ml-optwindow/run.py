@@ -287,9 +287,19 @@ def main(argv=None, scorer=call_scorer):
     inputs = {"persona": a.persona, "posting_checks": a.checks, "companies": str(core.CSV_PATH),
               "bls": str(core.BLS_PATH)}
     run_record = {"run_date": run_date.isoformat(), "command": command,
-                  "inputs": {k: {"path": core._rel(p), "sha256": sha256(p)} for k, p in inputs.items()},
                   "outputs": {"report": core._rel(report_path), "run_log": core._rel(log_path),
                               "roles": core._rel(roles_path)}}
+    # Check every input exists before hashing it: a missing file is a clean halt, never a traceback.
+    missing = [(k, p) for k, p in inputs.items() if not Path(p).is_file()]
+    if missing:
+        msg = "input file not found: " + "; ".join(f"{k} = {core._rel(p)}" for k, p in missing)
+        print(f"HALT: {msg}")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        run_record["inputs"] = {k: {"path": core._rel(p), "exists": Path(p).is_file()} for k, p in inputs.items()}
+        log_path.write_text(json.dumps({**run_record, "status": "halted", "halt": msg}, indent=2) + "\n")
+        print(f"run-log: {core._rel(log_path)}")
+        return 2
+    run_record["inputs"] = {k: {"path": core._rel(p), "sha256": sha256(p)} for k, p in inputs.items()}
     try:
         persona = core.load_persona(a.persona)
         run_record["persona_id"] = persona["persona_id"]

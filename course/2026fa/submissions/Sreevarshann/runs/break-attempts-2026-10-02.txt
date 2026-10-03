@@ -85,3 +85,12 @@ Ran 1 test in 0.014s
 OK
 [exit 0]
 
+
+=== (d) after fix
+# Same command as attempt d above, rerun after run.py checks that every input exists before hashing it.
+# Interpreter: $PY = <scratchpad>/cleanvenv/bin/python (Python 3.13.9, isolated venv, no site packages)
+$ $PY scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02 --checks /tmp/break-2026-10-02/does-not-exist.csv --out-root /tmp/break-2026-10-02/out/d
+HALT: input file not found: posting_checks = /tmp/break-2026-10-02/does-not-exist.csv
+run-log: /tmp/break-2026-10-02/out/d/2026-10-02/run-log.json
+[exit 2]
+# Follow-up: /tmp/break-2026-10-02/out/d/2026-10-02/ contains only run-log.json; status "halted"; inputs.posting_checks.exists = false; no report, no roles.json.
