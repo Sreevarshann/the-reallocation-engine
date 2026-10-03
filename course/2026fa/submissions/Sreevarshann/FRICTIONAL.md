@@ -69,3 +69,36 @@ This is my honest log of attempts, checks, and human vs. AI contributions for th
 
 ### Note on authorship of this log
 - Entries 1–5 were drafted by Claude (chat) from our conversation transcript at my request, then reviewed and confirmed by me for accuracy. Later entries are written by me unless marked otherwise.
+
+### Entry 6
+- **Date/time:** 2026-10-02, evening
+- **Step:** Prototype core — normalizer import
+- **What I tried:** Reusing normalize_company_name from scripts/sec/sec-all-quarters.py, as the brief committed to.
+- **What I expected:** A clean import.
+- **What happened:** The file imports pandas at line 1. It only worked locally because my python3 is Anaconda; in a clean stdlib-only environment it fails. CI installs only pyyaml. My committed candidate-analysis.py had the same hidden dependency.
+- **What I checked or changed:** Switched to the stdlib-only normalize_company_name in scripts/sec/entity-resolution.py after Claude Code showed 0 disagreements across 30,569 names; made a dated fix to candidate-analysis.py; recorded as CHANGE-BRIEF R1.
+- **Human vs AI:** Claude Code found the dependency and ran the equivalence check; I chose option A and a dated fix over a note-only correction.
+- **Trace:** 14411d3, CHANGE-BRIEF R1.
+
+### Entry 7
+- **Date/time:** 2026-10-02, evening
+- **Step:** Posting checks
+- **What I tried:** I did not do human posting checks. Claude (chat) found candidate URLs and statuses via web search; I committed them labeled model-judgment, checked_by "not human-verified".
+- **What I expected:** The AI's "open" statuses to hold up.
+- **What happened:** ats:liveness returned HTTP 404 for the AMGEN URL the AI reported as open, and "insufficient content" for Twilio. Under R3, AMGEN would have scored Apply on a dead link.
+- **What I checked or changed:** Added R4 — a record outranks a model-judgment on posting status, so contradicted AI checks go to verify-posting. Added R5 so a human check wins same-date ties. Chose not to add a human check for this run; G4 was never cleared and the whole run is provisional.
+- **Human vs AI:** The stale URL came from Claude (chat). Claude Code ran the tool and implemented R4/R5. I chose the rules and chose to skip the human check. Unresolved: no role in this run reached a real decision.
+- **Trace:** c1771bb, 0c6c941, 4b08d46, runs/ats-liveness-2026-10-02.txt.
+
+### Entry 8
+- **Date/time:** 2026-10-02, late evening
+- **Step:** End-to-end run and recipe status
+- **What I tried:** Running run.py through the real scorer and marking the recipe RUNNABLE-SAMPLE.
+- **What I expected:** RUNNABLE-SAMPLE to be justified because the prototype runs end to end.
+- **What happened:** Claude Code later admitted the committed run used Anaconda, not the clean environment, because of a symlink loop it created; a clean rerun reproduced identical scorer outputs. SNICKERDOODLE lines 58–59 require zero open TODOs and a read audit before RUNNABLE-SAMPLE; I have 5 TODOs.
+- **What I checked or changed:** Held the recipe at DRAFT with a sentence explaining why. Break attempt (d) exposed a crash on a missing input file, which I then had fixed.
+- **Human vs AI:** Claude Code caught and corrected its own interpreter error. Claude (chat) advised holding at DRAFT; I accepted. The scorer's own role-scores.md calls the 100% skip "healthy", which my report contradicts.
+- **Trace:** bc723e6, 80aec36, cdb5828, f3ddb9a (fix), d1031c2 (docs).
+
+### Note on authorship of entries 6–8
+- Drafted by Claude (chat) from our conversation at my request, then reviewed and confirmed by me.

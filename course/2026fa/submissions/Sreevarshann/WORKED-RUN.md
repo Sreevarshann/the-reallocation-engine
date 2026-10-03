@@ -188,7 +188,7 @@ The exact source lines from the sponsorship CSV, showing only company name, appr
 - top_job_titles_sponsored: `['Senior Emerging Technology Engineer', 'Process Improvement Lead', 'Senior Software Engineer', 'Senior Full Stack Engineer', 'Software Engineer 2', 'Lead Technology Leadership Professional', 'Senior Application Architect', 'Senior Software Engineer', 'Senior Full Stack Engineer', 'Senior Cloud Services Engineer', 'Data Engineer 2', 'Lead Application Architect', 'Senior Software Engineer']`
 - Note (model-judgment, unverified): the title mix reads like a large enterprise IT organisation, which does not fit a bot-fraud security firm of HUMAN's profile; this record may belong to a different employer.
 
-My check:
+My check: I ran a csv.DictReader one-liner in my own terminal printing only company_name and Total Approvals for HUMAN INC and AMGEN INC, and saw HUMAN INC 1382.0 and AMGEN INC 1882.0, matching the values above. I did not verify whether the HUMAN INC record belongs to HUMAN Security.
 
 **AMGEN INC — `data/80-days-to-stay/80-days-csv/mapped_student_employment_targets_v3.csv` line 1567**
 - company_name: `AMGEN INC`
@@ -196,11 +196,17 @@ My check:
 - top_job_titles_sponsored: `['Data Engineer 20516.3745', 'Strategy Sr. Manager 20516.2439', 'Commercial Leadership Program 20516.4093', 'Principal IS Architect 20516.1936.14 ', 'Sr. Associate IS Engineer 20516.3864.5']`
 - `latest_funding_date` and `latest_funding_stage` are blank on this line; the report shows them as missing.
 
-My check:
+My check: I ran a csv.DictReader one-liner in my own terminal printing only company_name and Total Approvals for HUMAN INC and AMGEN INC, and saw HUMAN INC 1382.0 and AMGEN INC 1882.0, matching the values above. I did not verify whether the HUMAN INC record belongs to HUMAN Security.
 
 ## Reflection
 
-<!-- Sreevarshann: write your reflection here. -->
+**Reflection.** *(Drafted by Claude (chat) from my decisions during the session; reviewed and confirmed by me.)*
+
+What worked: the pre-score guard (G5) and the record-outranks-model-judgment rule (R4) did their job on real data. The first AI-sourced posting check said AMGEN's Data Engineer role was open; ats:liveness returned HTTP 404, and R4 sent it to verify-posting instead of letting it score Apply on a dead link. Missing data stayed missing throughout — blank funding dates, zero Form D matches, and unchecked postings were reported as gaps, never filled.
+
+What it got wrong or missed: (1) I predicted the timeline gate could close; for this persona it can't (R2) — it only halts. (2) No human checked any posting, so G4 was never cleared and every decision is provisional; the run produced 3 Skips and nothing to apply to. (3) A pandas dependency was hidden by my Anaconda install until a clean-environment test exposed it (R1). (4) Break attempt (d) crashed on a missing file before I fixed it. (5) The keyword rule misses "Data Analytics Engineer" — the persona's own field.
+
+Next improvement: a human verifies the postings for the 22 Proven-tier entry-eligible companies, so at least some roles can clear G4 and reach a real decision; after that, extend the keyword rule to analytics-engineer titles and re-run.
 
 ## Attestation
 
