@@ -18,6 +18,8 @@ recipe_version: 0.1.0
 
 **Lifecycle status.** The prototype runs end to end on shipped sample data (commit bc723e6, run 2026-10-02), but the lifecycle stage is held at DRAFT because SNICKERDOODLE requires zero open TODO items before SPECIFIED (SNICKERDOODLE.md line 58; 5 are open) and, before RUNNABLE-SAMPLE, a run-log entry plus audit files that have been generated and read (line 59; neither exists yet). To advance: close each of the 5 proposed-addition TODO items with the closure evidence its type requires (lines 79 and 81: a DEV item needs the script, passing conformance, and its handoff condition met; a DATA SOURCE item needs the file at the named path plus a one-line provenance note, closed by a human) to reach SPECIFIED; then add the run-log entry `logs/runs/2026fa-Sreevarshann-1.md` (CONTRIBUTING.md puts student run logs there instead of `logs/RUN_LOG.md`) and an audit of the sample run that a named human has read, to reach RUNNABLE-SAMPLE.
 
+Update 2026-10-02: the run-log entry logs/runs/2026fa-Sreevarshann-1.md now exists; the recipe stays at DRAFT because 5 TODO items are open (SNICKERDOODLE line 58) and no named human has read an audit of the run (line 59).
+
 Two customers: this file is for the agent; `recipes/cases/2026fa/Sreevarshann-newgrad-de-ml-optwindow.card.md` is for the human.
 
 **Handoff condition (done when):** a run writes `report.md` and `run-log.json` under `course/2026fa/submissions/Sreevarshann/runs/<run-date>/`; every role appears on exactly one list; every emitted value carries a `record` / `model-judgment` / `your-input` label; the scorer received only roles that passed G1–G5; and the report's first section states whether the G4 human liveness gate was cleared. "Looks right" is not the condition.
@@ -110,6 +112,9 @@ python3 -m unittest discover -s scripts/contrib/2026fa/Sreevarshann-newgrad-de-m
 - **Only SEC samples ship**: Form D is used only as a cross-check against the samples; zero matches are listed under Cannot verify.
 - **Planned directories and the `snickerdoodle` CLI do not exist**: this recipe references neither; every path above exists today.
 - **Funding:** the assignment lists funding as a vote, but this recipe keeps it report-only because the scorer has no funding term; adding one is proposed addition 1.
+- **All top-level recipes DRAFT (fact 6):** the assignment says every top-level recipe is DRAFT, but four are RUNNABLE-SAMPLE and status.md is stale — this recipe doesn't rely on either claim.
+- **`bls:local-wage` on a fresh clone (fact 7):** npm run bls:local-wage fails on a fresh clone (no .venv, and none of data/bls/local-wage/ ships), so this recipe doesn't call it.
+- **`validate-h1b-join-sample.py` (fact 8):** scripts/sec/validate-h1b-join-sample.py needs SEC_DOL_H1b_data_mapped.csv, which doesn't ship, and would overwrite a tracked audit file if it did — this recipe doesn't run it.
 
 ## Output contract
 

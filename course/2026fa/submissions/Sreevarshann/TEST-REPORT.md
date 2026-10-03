@@ -267,3 +267,45 @@ $ npm run score -- data/examples/ch11-roles.json --out-dir course/2026fa/submiss
 ```
 
 Exit 0. Roles, composites, and recommendations match the tracked `data/examples/role-scores.json`; `data/examples/` untouched; the only change was the new `course/2026fa/submissions/Sreevarshann/runs/baseline-ch11/` folder.
+
+## Updated diff stat (final)
+
+Real output of `git diff --stat main...HEAD` at commit `078458a`, taken immediately before the audit-gap commit. That commit adds no new files; it modifies five existing ones already listed below (the recipe, the card, this report, DOMAIN-JUSTIFICATION.md, FRICTIONAL.md). The earlier diff-stat section above (23 files) is left as it was.
+
+```text
+$ git diff --stat main...HEAD
+ .../submissions/Sreevarshann/CHANGE-BRIEF.md       |  173 +
+ .../Sreevarshann/DOMAIN-JUSTIFICATION.md           |   20 +
+ .../2026fa/submissions/Sreevarshann/FRICTIONAL.md  |  104 +
+ course/2026fa/submissions/Sreevarshann/SOURCES.md  |   54 +
+ .../2026fa/submissions/Sreevarshann/TEST-REPORT.md |  269 +
+ .../2026fa/submissions/Sreevarshann/WORKED-RUN.md  |  257 +
+ .../Sreevarshann/inputs/posting-checks.csv         |    6 +
+ .../Sreevarshann/notes/candidate-analysis.md       |  146 +
+ .../Sreevarshann/notes/candidate-analysis.py       |  116 +
+ .../Sreevarshann/runs/2026-10-02/report.md         |  331 +
+ .../Sreevarshann/runs/2026-10-02/role-scores.json  |  152 +
+ .../Sreevarshann/runs/2026-10-02/role-scores.md    |   13 +
+ .../Sreevarshann/runs/2026-10-02/roles.json        |   89 +
+ .../Sreevarshann/runs/2026-10-02/run-log.json      | 8175 ++++++++++++++++++++
+ .../Sreevarshann/runs/ats-liveness-2026-10-02.txt  |   67 +
+ .../runs/baseline-ch11/role-scores.json            |  241 +
+ .../Sreevarshann/runs/baseline-ch11/role-scores.md |   15 +
+ .../runs/break-attempts-2026-10-02.txt             |   96 +
+ logs/runs/2026fa-Sreevarshann-1.md                 |   12 +
+ .../Sreevarshann-newgrad-de-ml-optwindow.card.md   |   71 +
+ .../2026fa/Sreevarshann-newgrad-de-ml-optwindow.md |  162 +
+ .../Sreevarshann-newgrad-de-ml-optwindow/README.md |   76 +
+ .../Sreevarshann-newgrad-de-ml-optwindow/core.py   |  544 ++
+ .../fixtures/BROKEN-g5-ignores-liveness.py         |   14 +
+ .../fixtures/companies-slice.csv                   |   10 +
+ .../fixtures/persona-meera-krishnan.json           |   11 +
+ .../fixtures/posting-checks.csv                    |    8 +
+ .../Sreevarshann-newgrad-de-ml-optwindow/run.py    |  363 +
+ .../tests/test_core.py                             |  560 ++
+ .../tests/test_run.py                              |  101 +
+ search/examples/meera-krishnan/profile.yml         |   43 +
+ 31 files changed, 12299 insertions(+)
+```
+
+Every path is under `course/2026fa/submissions/Sreevarshann/`, `scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/`, `recipes/cases/2026fa/Sreevarshann-newgrad-de-ml-optwindow.*`, `logs/runs/2026fa-Sreevarshann-1.md`, or the declared exception `search/examples/meera-krishnan/profile.yml`. `logs/RUN_LOG.md` and every other protected path are untouched.

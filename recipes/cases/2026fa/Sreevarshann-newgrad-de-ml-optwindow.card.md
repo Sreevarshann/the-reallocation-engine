@@ -6,6 +6,8 @@
 
 **Lifecycle status:** DRAFT (held). The tool runs end to end on shipped sample data (commit bc723e6, run 2026-10-02), but the recipe stays at DRAFT until its 5 proposed additions are closed with evidence, a run-log entry exists, and a named human has read an audit of the sample run — see the agent twin for the exact rule.
 
+Update 2026-10-02: the run-log entry now exists; the recipe stays at DRAFT because its 5 proposed additions are still open and no named human has read an audit of the run.
+
 **Audience:** an F-1 new graduate, OPT not started, targeting Data Engineer or ML Engineer roles.
 **Agent twin:** `recipes/cases/2026fa/Sreevarshann-newgrad-de-ml-optwindow.md`
 **Chapters:** 7, 8, 10, 11 (Ch 9 report-only; Ch 2 for the 3-3-2 day).

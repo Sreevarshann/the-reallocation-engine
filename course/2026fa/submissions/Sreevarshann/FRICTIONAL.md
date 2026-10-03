@@ -102,3 +102,13 @@ This is my honest log of attempts, checks, and human vs. AI contributions for th
 
 ### Note on authorship of entries 6–8
 - Drafted by Claude (chat) from our conversation at my request, then reviewed and confirmed by me.
+
+### Entry 9
+- **Date/time:** 2026-10-02, late night
+- **Step:** Final validation — fresh clone and audit
+- **What I tried:** Running the prototype and repo checks from a fresh clone of my branch, then a requirements audit against the assignment.
+- **What I expected:** Everything to pass as it did in my working copy.
+- **What happened:** npm run verify failed in the fresh clone with the clean interpreter: the repo's manifest check needs PyYAML, which CI installs but my earlier "passes" had silently used Anaconda for — the same hidden-dependency pattern as pandas. The README command also refused to run on a date that already had a run folder. Claude Code nearly committed the npm author's email again in pasted pii-scan output; the working-tree scan caught it before commit this time. The audit found five partial items: a stale lifecycle sentence, facts 6–8 not named, a stale diff stat, and the justification slightly over one page.
+- **What I checked or changed:** Mirrored CI with a PyYAML-only environment (verify passed); documented the --out-root rerun command in the README; fixed all four partial items.
+- **Human vs AI:** Claude Code ran the clone, found the PyYAML issue, and did the audit; Claude (chat) recommended mirroring CI and fixing the README; I approved both. This entry was drafted by Claude (chat) and reviewed by me.
+- **Trace:** 078458a, and this commit.
