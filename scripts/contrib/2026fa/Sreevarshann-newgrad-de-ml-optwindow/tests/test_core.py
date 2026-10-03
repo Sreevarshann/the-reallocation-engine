@@ -399,6 +399,33 @@ class ConflictTest(unittest.TestCase):
             self.assertNotIn("tool_disagreement", role["liveness"]["factor"])
             self.assertEqual(plan["tool_disagreements"], [])
 
+    def test_same_date_human_check_beats_ai_check_in_either_order(self):
+        """R5: newest check wins; on a same-date tie the human check governs, whatever the row order."""
+        ai = ["Alpha Data Example", "data_engineer", "https://example.com/ai", "2026-10-02", "open", AI_BY,
+              "snapshot", "expired", "HTTP 404", "2026-10-02"]
+        human = ["Alpha Data Example", "data_engineer", "https://example.com/human", "2026-10-02", "open",
+                 "test human", "seen it", "expired", "HTTP 404", "2026-10-02"]
+        persona = core.load_persona(FIX / "persona-meera-krishnan.json")
+        for rows in ([ai, human], [human, ai]):
+            checks, _ = core.load_posting_checks(write_checks(rows))
+            plan = core.build_plan(core.load_companies(FIX / "companies-slice.csv"), persona, checks, RUN)
+            role = self.alpha(plan, "scoreable")[0]
+            live = role["liveness"]["factor"]
+            self.assertEqual((live["url"], live["label"], live["value"]), ("https://example.com/human", "your-input", 1.0))
+            self.assertTrue(live["g4_human_cleared"])
+            self.assertIn("human status governs", live["tool_disagreement"])
+
+    def test_newer_ai_check_still_beats_older_human_check(self):
+        older_human = ["Alpha Data Example", "data_engineer", "https://example.com/human", "2026-09-30", "open",
+                       "test human", "seen it", "", "", ""]
+        newer_ai = ["Alpha Data Example", "data_engineer", "https://example.com/ai", "2026-10-01", "not found",
+                    AI_BY, "snapshot", "", "", ""]
+        checks, _ = core.load_posting_checks(write_checks([older_human, newer_ai]))
+        live, reason = core.liveness_gate({"company_key": "alphadataexample", "role_type": {"value": "data_engineer"}},
+                                          checks, RUN)
+        self.assertIsNone(reason)
+        self.assertEqual((live["url"], live["label"]), ("https://example.com/ai", "model-judgment"))
+
     def test_agreement_is_not_a_conflict(self):
         for status, tool in (("open", "active"), ("closed", "expired"), ("not found", "expired")):
             self.assertFalse(core.status_conflict(status, tool), (status, tool))

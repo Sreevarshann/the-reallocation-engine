@@ -391,7 +391,8 @@ def liveness_gate(role, checks, run_date, max_age_days=MAX_CHECK_AGE_DAYS):
     mine = [c for c in checks if c["company_key"] == role["company_key"] and c["role_type"] == role["role_type"]["value"]]
     if not mine:
         return None, "unchecked: no posting check recorded"
-    latest = max(mine, key=lambda c: c["date_checked"])
+    # newest check wins; on a same-date tie a human check beats a model-judgment check (CHANGE-BRIEF R5)
+    latest = max(mine, key=lambda c: (c["date_checked"], c["human_checked"]))
     d = latest["date_checked"]
     if d > run_date:
         return None, f"check dated {d.isoformat()}, after the run date {run_date.isoformat()}"
