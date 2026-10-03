@@ -291,7 +291,8 @@ class CheckedByTest(unittest.TestCase):
 
     def test_ai_check_is_scored_but_g4_not_cleared_and_run_is_provisional(self):
         plan = self.plan_with([["Alpha Data Example", "data_engineer", "https://example.com/a", "2026-10-02", "open",
-                                AI_BY, "snapshot", "expired", "HTTP 404", "2026-10-02"]])
+                                AI_BY, "snapshot", "active", "visible apply control detected", "2026-10-02"]])
+        # R4: tool result chosen to agree with the status; the conflict case is covered by ConflictTest.
         role = [r for r in plan["scoreable"] if r["role_id"] == "alphadataexample:data_engineer"][0]
         live = role["liveness"]["factor"]
         self.assertEqual(live["label"], "model-judgment")
@@ -305,12 +306,14 @@ class CheckedByTest(unittest.TestCase):
 
     def test_tool_result_is_record_with_run_source(self):
         plan = self.plan_with([["Alpha Data Example", "data_engineer", "https://example.com/a", "2026-10-02", "open",
-                                AI_BY, "snapshot", "expired", "HTTP 404", "2026-10-02"]])
+                                AI_BY, "snapshot", "uncertain", "navigation error: page.goto: Download is starting",
+                                "2026-10-02"]])
+        # R4: a non-conflicting result ("uncertain"); a contradicting one is covered by ConflictTest.
         live = plan["scoreable"][0]["liveness"]["factor"]
-        self.assertEqual(live["tool_result"], {"value": "expired", "label": "record",
+        self.assertEqual(live["tool_result"], {"value": "uncertain", "label": "record",
                                                "source": "npm run ats:liveness, 2026-10-02"})
-        self.assertEqual(live["tool_reason"]["value"], "HTTP 404")
-        self.assertEqual(live["value"], 1.0, "status drives the factor; the tool result is a cross-check only")
+        self.assertEqual(live["tool_reason"]["value"], "navigation error: page.goto: Download is starting")
+        self.assertEqual(live["value"], 1.0, "without a contradiction the status drives the factor")
         reasons = [c["reason"] for c in plan["cannot_verify"]]
         self.assertTrue(any("no 'not found' result" in r for r in reasons))
         self.assertTrue(any("'insufficient content' as expired" in r for r in reasons))
@@ -346,6 +349,59 @@ class CheckedByTest(unittest.TestCase):
         self.assertEqual(rejected, [])
         self.assertEqual(len(checks), 5)
         self.assertTrue(all(c["label"] == "model-judgment" and not c["human_checked"] for c in checks))
+
+
+class ConflictTest(unittest.TestCase):
+    """CHANGE-BRIEF R4: a record outranks a model-judgment posting status; a human status is never overridden."""
+
+    def plan_with(self, checked_by, status, tool_result, tool_reason):
+        checks, rejected = core.load_posting_checks(write_checks(
+            [["Alpha Data Example", "data_engineer", "https://example.com/a", "2026-10-02", status, checked_by,
+              "snapshot", tool_result, tool_reason, "2026-10-02" if tool_result else ""]]))
+        self.assertEqual(rejected, [])
+        persona = core.load_persona(FIX / "persona-meera-krishnan.json")
+        return core.build_plan(core.load_companies(FIX / "companies-slice.csv"), persona, checks, RUN)
+
+    def alpha(self, plan, lst):
+        return [r for r in plan[lst] if r.get("role_id") == "alphadataexample:data_engineer"]
+
+    def test_model_judgment_open_vs_record_expired_goes_to_verify_posting(self):
+        plan = self.plan_with(AI_BY, "open", "expired", "HTTP 404")
+        self.assertFalse(self.alpha(plan, "scoreable"))
+        v = self.alpha(plan, "verify_posting")[0]
+        self.assertTrue(v["reason"].startswith("conflict: model-judgment status vs ats:liveness record"))
+        self.assertIn("status=open [model-judgment]", v["reason"])
+        self.assertIn("tool_result=expired [record]: HTTP 404", v["reason"])
+        self.assertEqual(v["posting_conflict"]["status"]["label"], "model-judgment")
+        self.assertEqual(v["posting_conflict"]["tool_result"]["label"], "record")
+        self.assertNotIn("liveness", v)
+
+    def test_model_judgment_not_found_vs_record_active_goes_to_verify_posting(self):
+        plan = self.plan_with(AI_BY, "not found", "active", "visible apply control detected")
+        self.assertFalse(self.alpha(plan, "scoreable"))
+        self.assertTrue(self.alpha(plan, "verify_posting")[0]["reason"].startswith("conflict:"))
+
+    def test_human_open_vs_record_expired_human_governs_and_is_flagged(self):
+        plan = self.plan_with("test human", "open", "expired", "insufficient content — likely nav/footer only")
+        role = self.alpha(plan, "scoreable")[0]
+        live = role["liveness"]["factor"]
+        self.assertEqual((live["value"], live["label"]), (1.0, "your-input"))
+        self.assertIn("human status governs", live["tool_disagreement"])
+        self.assertEqual([d["role_id"] for d in plan["tool_disagreements"]], ["alphadataexample:data_engineer"])
+        self.assertNotIn("posting_conflict", role)
+
+    def test_uncertain_never_overrides(self):
+        for status, factor in (("open", 1.0), ("not found", 0.0)):
+            plan = self.plan_with(AI_BY, status, "uncertain", "navigation error: page.goto: Download is starting")
+            role = self.alpha(plan, "scoreable")[0]
+            self.assertEqual(role["liveness"]["factor"]["value"], factor, status)
+            self.assertEqual(role["liveness"]["factor"]["tool_result"]["value"], "uncertain")
+            self.assertNotIn("tool_disagreement", role["liveness"]["factor"])
+            self.assertEqual(plan["tool_disagreements"], [])
+
+    def test_agreement_is_not_a_conflict(self):
+        for status, tool in (("open", "active"), ("closed", "expired"), ("not found", "expired")):
+            self.assertFalse(core.status_conflict(status, tool), (status, tool))
 
 
 class SponsorshipTest(unittest.TestCase):

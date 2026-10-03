@@ -73,6 +73,15 @@ TOOL_LIMITS = [  # CHANGE-BRIEF R3: standing cannot-verify items whenever ats:li
     {"company_key": None, "reason": "ats:liveness classifies 'insufficient content' as expired: a slow or "
                                     "bot-blocked page can be reported expired while the posting is live"},
 ]
+CONFLICT_REASON = "conflict: model-judgment status vs ats:liveness record"
+
+
+def status_conflict(status, tool_result):
+    """R4: True when an ats:liveness result contradicts a posting status. 'uncertain' never contradicts."""
+    return (status == "open" and tool_result == "expired") or \
+        (status in ("closed", "not found") and tool_result == "active")
+
+
 G4_NOT_CLEARED = ("G4 human liveness gate NOT cleared for {n} scored role(s) ({ids}): their posting status comes "
                   "from a check marked 'not human-verified' (labelled model-judgment), not from a human. "
                   "Every decision for these roles is provisional.")
@@ -391,12 +400,26 @@ def liveness_gate(role, checks, run_date, max_age_days=MAX_CHECK_AGE_DAYS):
         return None, (f"stale: checked {d.isoformat()}, {age} days before run "
                       f"(limit {max_age_days} days, your-input)")
     factor = POSTING_STATUSES[latest["status"]]
+    tool_src = f"npm run ats:liveness, {latest['tool_run_date']}" if latest.get("tool_result") else None
+    conflict = bool(tool_src) and status_conflict(latest["status"], latest["tool_result"])
+    if conflict:
+        both = {"status": v(latest["status"], latest["label"], f"posting check {latest['_source']} ({latest['checked_by']})"),
+                "tool_result": v(latest["tool_result"], RECORD, tool_src),
+                "tool_reason": v(latest["tool_reason"] or None, RECORD, tool_src)}
+        if not latest["human_checked"]:
+            # R4: the record outranks a model-judgment status -> not scored, back to verify-posting.
+            role["posting_conflict"] = both
+            return None, (f"{CONFLICT_REASON} (status={latest['status']} [{latest['label']}], "
+                          f"tool_result={latest['tool_result']} [record]: {latest['tool_reason'] or 'no reason given'})")
     extra = {"url": latest["url"], "date_checked": d.isoformat(), "age_days": age, "status": latest["status"],
              "checked_by": latest["checked_by"], "g4_human_cleared": latest["human_checked"]}
     if latest.get("what_was_seen"):
         extra["what_was_seen"] = v(latest["what_was_seen"], latest["label"], f"posting check {latest['_source']}")
-    if latest.get("tool_result"):
-        tool_src = f"npm run ats:liveness, {latest['tool_run_date']}"
+    if conflict:  # human status governs (R4); the disagreement is flagged, not acted on
+        extra["tool_disagreement"] = (f"human status {latest['status']!r} disagrees with ats:liveness "
+                                      f"{latest['tool_result']!r} ({latest['tool_reason'] or 'no reason given'}); "
+                                      "human status governs (known false-expired cases)")
+    if tool_src:
         extra["tool_result"] = v(latest["tool_result"], RECORD, tool_src)
         extra["tool_reason"] = v(latest["tool_reason"] or None, RECORD, tool_src)
     return v(factor, latest["label"], f"posting check {latest['_source']} ({latest['checked_by']})", **extra), None
@@ -497,6 +520,8 @@ def build_plan(rows, persona, checks, run_date, rejected_checks=(), sample_glob=
     plan["headline_warnings"] = ([G4_NOT_CLEARED.format(n=len(not_cleared), ids=", ".join(not_cleared))]
                                  if not_cleared else [])
     plan["provisional"] = bool(not_cleared)
+    plan["tool_disagreements"] = [{"role_id": r["role_id"], "note": r["liveness"]["factor"]["tool_disagreement"]}
+                                  for r in plan["scoreable"] if r["liveness"]["factor"].get("tool_disagreement")]
     assert_scoreable(plan["scoreable"])
     plan["counts"] = {k: len(plan[k]) for k in ("scoreable", "blocked", "network", "verify_posting",
                                                  "rejected_checks", "cannot_verify")}
