@@ -9,9 +9,9 @@ Interpreter for every Python command in this report: `<scratchpad>/cleanvenv/bin
 **Why read it.** It shows what was actually run, what passed, what broke, and what a person still has to judge — so the tool's results can be trusted only as far as the evidence goes.
 
 **What it found.**
-- All 57 offline tests pass, and the repository's own checks pass before and after this work with no new warnings.
+- All 58 offline tests pass, and the repository's own checks pass before and after this work with no new warnings.
 - The full run on the shipped data completes: 3 roles reached the scorer and all 3 were skipped because their postings were reported gone; 61 roles need a posting checked first; 53 are networking targets.
-- Six deliberate break attempts were made. Five failed cleanly. One — pointing the tool at a posting-check file that does not exist — crashed with a raw error instead of a clean message. It invented nothing, but it is a defect to fix.
+- Six deliberate break attempts were made, and all six now fail cleanly. One — pointing the tool at a posting-check file that does not exist — first crashed with a raw error instead of a clean message; it invented nothing, and it has since been fixed and re-tested.
 - The first committed run accidentally used a different Python installation than intended; a rerun with the intended clean one produced identical scorer outputs.
 - Three problems in the shared repository make parts of the course's automatic checks fail for everyone; none is caused by this work.
 
@@ -37,7 +37,7 @@ The doctor counts only top-level `recipes/`; the new case recipe under `recipes/
 
 ```
 $PY -W error::ResourceWarning -m unittest discover -s scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/tests -b
-Ran 57 tests in 8.521s
+Ran 58 tests in 9.047s
 
 OK
 ```
@@ -87,6 +87,7 @@ Every failure case predicted in CHANGE-BRIEF, with the test that covers it (all 
 | Incomplete role reaches the scorer (G5) | blocked or halt | `test_each_missing_input_is_caught`, `test_assert_scoreable_halts_on_incomplete_role`, `test_suite_catches_broken_mutant` | **f** |
 | Zero scoreable roles | scorer skipped with a plain message | `test_zero_scoreable_skips_scorer_with_plain_message` | — |
 | Rerun into an existing run folder | refused | `test_refuses_to_overwrite_existing_run` | **e** |
+| Missing input file | halt naming the missing path, run log only | `test_missing_input_file_halts_cleanly` | **d** |
 
 ## Break attempts (real CLI runs)
 
@@ -97,11 +98,11 @@ Full commands and real output: `course/2026fa/submissions/Sreevarshann/runs/brea
 | a | persona whose 90-day window ended 2026-08-30 | 2 | HALT at G2; only `run-log.json` (status `halted`) | yes |
 | b | posting check with `date_checked` 2026-13-45 | 0 | AMGEN row rejected; AMGEN → verify-posting "unchecked"; rest of run proceeds | yes — rejected, not repaired |
 | c | posting-check file with an unknown column | 2 | HALT naming `vibe`; only `run-log.json` | yes |
-| d | posting-check file path does not exist | 1 | unhandled `FileNotFoundError` traceback; no outputs at all | **no invented value, but not clean** |
+| d | posting-check file path does not exist | before fix: 1 · after fix: 2 | before: unhandled `FileNotFoundError` traceback, no outputs · after (`f3ddb9a`): `HALT: input file not found: posting_checks = …`; only `run-log.json` (status `halted`) | before: no invented value, not clean · **after: yes** |
 | e | rerun into the existing `runs/2026-10-02` | 3 | "refusing to overwrite existing run outputs …"; committed folder untouched | yes |
 | f | `BROKEN-g5-ignores-liveness` mutant test | 0 | test passes: the real G5 halts the unchecked role, the mutant lets it through | yes |
 
-**Defect from attempt d (open):** `run.py` computes each input's SHA-256 before its `GateHalt` handling, so a missing input file raises a raw traceback instead of a clean "input not found" halt with a run log. No value is invented and no file is written, but the failure is not clean. Not fixed in this step.
+**Defect from attempt d — fixed in `f3ddb9a`:** `run.py` computed each input's SHA-256 before its `GateHalt` handling, so a missing input file raised a raw traceback. It now checks every input exists first and, on a missing file, writes `run-log.json` with status `halted` and a message naming the path, exits 2, and writes no report. Covered by `test_missing_input_file_halts_cleanly`; the rerun of attempt d is appended to the break-attempts file under "(d) after fix".
 
 ## Diff scope: `git diff --stat main...HEAD`
 

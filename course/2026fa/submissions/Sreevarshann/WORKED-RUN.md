@@ -116,7 +116,7 @@ Results: 0 active  0 expired  1 uncertain
 
 ```text
 $PY -W error::ResourceWarning -m unittest discover -s scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/tests -b
-Ran 57 tests in 8.521s
+Ran 58 tests in 9.047s
 
 OK
 ```
@@ -212,14 +212,14 @@ My check:
 ### Tested
 | Ran | Saw | Expected |
 |---|---|---|
-| `$PY -W error::ResourceWarning -m unittest discover -s scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/tests -b` | `Ran 57 tests … OK` | all tests pass, no resource warnings |
+| `$PY -W error::ResourceWarning -m unittest discover -s scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/tests -b` | `Ran 58 tests … OK` | all tests pass, no resource warnings |
 | `$PY scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02 --out-root /tmp/worked-2026-10-02/out` | exit 0; plan 3 scoreable / 61 verify / 53 network / 0 blocked; scorer Skip 3; `provisional=True` | a full run with every role on one list and the G4 warning first |
 | byte compare of the clean rerun vs the committed run folder | `roles.json`, `role-scores.json`, `role-scores.md` identical | identical scorer inputs/outputs |
 | `npm run ats:liveness -- <url>` on the 5 posting URLs | 2 expired (HTTP 404; insufficient content), 3 uncertain | a recorded result per URL |
 | **Break a:** persona whose window ended 2026-08-30 | exit 2; `HALT: G2 timeline: unemployment window ended 2026-08-30 …`; only run-log.json | halt, no invented timeline |
 | **Break b:** posting check dated 2026-13-45 | exit 0; row rejected "date_checked not an ISO date"; AMGEN → verify-posting "unchecked" | row rejected, not repaired |
 | **Break c:** unknown column `vibe` | exit 2; HALT naming the column | halt |
-| **Break d:** posting-check path does not exist | exit 1; raw `FileNotFoundError` traceback; no outputs | **clean halt with a run log — not met** |
+| **Break d:** posting-check path does not exist | before fix: exit 1, raw `FileNotFoundError` traceback, no outputs · after fix (`f3ddb9a`): exit 2, `HALT: input file not found: posting_checks = …`, only run-log.json | clean halt with a run log — met after the fix |
 | **Break e:** rerun into existing `runs/2026-10-02` | exit 3; "refusing to overwrite existing run outputs …"; no tracked changes | refusal |
 | **Break f:** `-k suite_catches_broken_mutant` | `Ran 1 test … OK` — real G5 halts the unchecked role, the mutant does not | suite catches the mutant |
 | `npm run doctor`, `npm run verify` (after) | both exit 0; doctor identical to before; conformance 167 files ✓; manifest ✓ (3 pre-existing warnings) | no regression |
@@ -245,6 +245,7 @@ My check:
 - **Interpreter symlink loop** — the committed run fell through to Anaconda's Python; link restored, clean rerun reproduced identical scorer outputs.
 - **Commit author email** was a machine `.local` address — re-authored to the GitHub noreply address before any push.
 - **PII-scan finding introduced in FRICTIONAL.md** (a quoted npm author email) — amended before any push; branch-history scan clean.
+- **Break d: a missing input file raised a raw traceback** — `run.py` now checks every input exists before hashing and halts cleanly with a run log (commit `f3ddb9a`, test `test_missing_input_file_halts_cleanly`).
 
 ### Broke during testing, not yet fixed
-- **Break d** — a missing input file raises a raw traceback instead of a clean halt with a run log.
+- None.
