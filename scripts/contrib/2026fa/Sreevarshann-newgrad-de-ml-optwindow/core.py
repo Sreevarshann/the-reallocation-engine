@@ -63,7 +63,19 @@ NEEDED_COLUMNS = ["company_name", "top_job_titles_sponsored", "Total Approvals",
 TIER_SOURCE = "tier cut-offs: CHANGE-BRIEF.md (your-input)"
 PROVEN_SOURCE = ("tier string from Ch.11 and data/examples fixtures; "
                  "code only defines soft tiers at role-scorer.mjs:48")
-POSTING_COLUMNS = ["company", "role_type", "url", "date_checked", "status"]
+POSTING_COLUMNS = ["company", "role_type", "url", "date_checked", "status", "checked_by"]
+POSTING_OPTIONAL = ["what_was_seen", "tool_result", "tool_reason", "tool_run_date"]
+NOT_HUMAN_RX = re.compile(r"not human-verified", re.I)  # CHANGE-BRIEF R3
+TOOL_RESULTS = {"active", "expired", "uncertain"}  # the only results npm run ats:liveness emits
+TOOL_LIMITS = [  # CHANGE-BRIEF R3: standing cannot-verify items whenever ats:liveness results are used
+    {"company_key": None, "reason": "ats:liveness has no 'not found' result: removed and closed postings both "
+                                    "report 'expired'; only the reason text tells them apart"},
+    {"company_key": None, "reason": "ats:liveness classifies 'insufficient content' as expired: a slow or "
+                                    "bot-blocked page can be reported expired while the posting is live"},
+]
+G4_NOT_CLEARED = ("G4 human liveness gate NOT cleared for {n} scored role(s) ({ids}): their posting status comes "
+                  "from a check marked 'not human-verified' (labelled model-judgment), not from a human. "
+                  "Every decision for these roles is provisional.")
 POSTING_STATUSES = {"open": 1.0, "closed": 0.0, "not found": 0.0}
 MAX_CHECK_AGE_DAYS = 7  # your-input (CHANGE-BRIEF G4)
 SOC_MAP = {"data_engineer": "15-1243", "ml_engineer": "15-2051"}  # model-judgment, report-only
@@ -315,16 +327,24 @@ def timeline_gate(persona, run_date):
 
 # ── G4 posting checks + liveness ─────────────────────────────────────────
 def load_posting_checks(path):
-    """Read the human posting-check CSV; malformed rows are rejected with a reason, never repaired."""
+    """Read the posting-check CSV; malformed rows are rejected with a reason, never repaired.
+
+    checked_by decides the label (CHANGE-BRIEF R3): a human check is your-input and can clear G4;
+    a check marked "not human-verified" is model-judgment and cannot.
+    """
     path = Path(path)
     valid, rejected = [], []
     with path.open(newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
-        if reader.fieldnames != POSTING_COLUMNS:
-            raise GateHalt(f"posting-check file must have columns exactly {POSTING_COLUMNS}, got {reader.fieldnames}")
+        cols = reader.fieldnames or []
+        missing = [c for c in POSTING_COLUMNS if c not in cols]
+        unknown = [c for c in cols if c not in POSTING_COLUMNS + POSTING_OPTIONAL]
+        if missing or unknown:
+            raise GateHalt(f"posting-check file columns: missing {missing}, unknown {unknown}; "
+                           f"required {POSTING_COLUMNS}, optional {POSTING_OPTIONAL}")
         for i, row in enumerate(reader, start=2):
             src = f"{_rel(path)}#L{i}"
-            row = {k: (row[k] or "").strip() for k in POSTING_COLUMNS}
+            row = {k: (row.get(k) or "").strip() for k in POSTING_COLUMNS + POSTING_OPTIONAL}
             problems = []
             if not row["company"]:
                 problems.append("company blank")
@@ -336,21 +356,32 @@ def load_posting_checks(path):
                 problems.append("date_checked not an ISO date")
             if row["status"] not in POSTING_STATUSES:
                 problems.append(f"status must be one of {sorted(POSTING_STATUSES)}")
+            if not row["checked_by"]:
+                problems.append("checked_by blank: cannot tell a human check from an AI one")
+            if row["tool_result"] and row["tool_result"] not in TOOL_RESULTS:
+                problems.append(f"tool_result must be one of {sorted(TOOL_RESULTS)} or blank")
+            if row["tool_result"] and _date(row["tool_run_date"]) is None:
+                problems.append("tool_run_date required (ISO date) when tool_result is given")
             if problems:
                 rejected.append({"row": row, "source": src, "reason": "; ".join(problems)})
-            else:
-                row["date_checked"] = _date(row["date_checked"])
-                row["company_key"] = normalize_company_name(row["company"])
-                row["_source"] = src
-                valid.append(row)
+                continue
+            row["date_checked"] = _date(row["date_checked"])
+            row["company_key"] = normalize_company_name(row["company"])
+            row["human_checked"] = not NOT_HUMAN_RX.search(row["checked_by"])
+            row["label"] = INPUT if row["human_checked"] else MODEL
+            row["_source"] = src
+            valid.append(row)
     return valid, rejected
 
 
 def liveness_gate(role, checks, run_date, max_age_days=MAX_CHECK_AGE_DAYS):
-    """G4: return (factor_value, None) from a current human check, or (None, reason) -> verify-posting list."""
+    """G4: return (factor_value, None) from a current posting check, or (None, reason) -> verify-posting list.
+
+    The factor carries the check's label: your-input (human, clears G4) or model-judgment (AI, does not).
+    """
     mine = [c for c in checks if c["company_key"] == role["company_key"] and c["role_type"] == role["role_type"]["value"]]
     if not mine:
-        return None, "unchecked: no human posting check recorded"
+        return None, "unchecked: no posting check recorded"
     latest = max(mine, key=lambda c: c["date_checked"])
     d = latest["date_checked"]
     if d > run_date:
@@ -360,8 +391,15 @@ def liveness_gate(role, checks, run_date, max_age_days=MAX_CHECK_AGE_DAYS):
         return None, (f"stale: checked {d.isoformat()}, {age} days before run "
                       f"(limit {max_age_days} days, your-input)")
     factor = POSTING_STATUSES[latest["status"]]
-    return v(factor, INPUT, f"human posting check {latest['_source']}", url=latest["url"],
-             date_checked=d.isoformat(), age_days=age, status=latest["status"]), None
+    extra = {"url": latest["url"], "date_checked": d.isoformat(), "age_days": age, "status": latest["status"],
+             "checked_by": latest["checked_by"], "g4_human_cleared": latest["human_checked"]}
+    if latest.get("what_was_seen"):
+        extra["what_was_seen"] = v(latest["what_was_seen"], latest["label"], f"posting check {latest['_source']}")
+    if latest.get("tool_result"):
+        tool_src = f"npm run ats:liveness, {latest['tool_run_date']}"
+        extra["tool_result"] = v(latest["tool_result"], RECORD, tool_src)
+        extra["tool_reason"] = v(latest["tool_reason"] or None, RECORD, tool_src)
+    return v(factor, latest["label"], f"posting check {latest['_source']} ({latest['checked_by']})", **extra), None
 
 
 # ── G5 pre-score evidence completeness ───────────────────────────────────
@@ -451,6 +489,14 @@ def build_plan(rows, persona, checks, run_date, rejected_checks=(), sample_glob=
 
     plan["cannot_verify"] = formd_crosscheck(
         [r["company_key"] for r in plan["scoreable"] + plan["verify_posting"]], sample_glob)["cannot_verify"]
+    if any(c.get("tool_result") for c in checks):
+        plan["cannot_verify"] += [dict(x) for x in TOOL_LIMITS]
+    not_cleared = [r["role_id"] for r in plan["scoreable"] if not r["liveness"]["factor"]["g4_human_cleared"]]
+    plan["g4_human_gate"] = {"cleared_for_all_scored": not not_cleared, "not_cleared_role_ids": not_cleared}
+    # A future report renders headline_warnings first, before anything else (CHANGE-BRIEF R3).
+    plan["headline_warnings"] = ([G4_NOT_CLEARED.format(n=len(not_cleared), ids=", ".join(not_cleared))]
+                                 if not_cleared else [])
+    plan["provisional"] = bool(not_cleared)
     assert_scoreable(plan["scoreable"])
     plan["counts"] = {k: len(plan[k]) for k in ("scoreable", "blocked", "network", "verify_posting",
                                                  "rejected_checks", "cannot_verify")}
@@ -466,7 +512,7 @@ def to_scorer_record(role):
         "title": role["role_type"]["value"],
         "sponsorship": {"p": s["p"]["value"], "tier": s["tier"]["value"], "source": INPUT},
         "fit": {"p": role["fit"]["p"]["value"], "source": INPUT},
-        "liveness": {"factor": role["liveness"]["factor"]["value"], "source": INPUT},
+        "liveness": {"factor": role["liveness"]["factor"]["value"], "source": role["liveness"]["factor"]["label"]},
         "timeline": {"factor": role["timeline"]["factor"]["value"], "source": INPUT},
         "evidence": {"total_approvals": s["approvals"]},
     }

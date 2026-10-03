@@ -8,9 +8,11 @@ fictional search/examples/meera-krishnan. Two tests read the real (public) 80 Da
 to prove the frozen rules still reproduce the recorded counts.
 """
 import copy
+import csv
 import importlib.util
 import re
 import sys
+import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
@@ -239,7 +241,8 @@ class LivenessTest(unittest.TestCase):
 
     def check(self, d, status="open"):
         return [{"company_key": "alphadataexample", "role_type": "data_engineer", "url": "https://example.com/j",
-                 "date_checked": d, "status": status, "_source": "test"}]
+                 "date_checked": d, "status": status, "_source": "test", "checked_by": "test human",
+                 "human_checked": True, "label": "your-input"}]
 
     def test_seven_days_is_current_eight_is_stale(self):
         live, reason = core.liveness_gate(self.role, self.check(date(2026, 9, 25)), RUN)
@@ -259,6 +262,90 @@ class LivenessTest(unittest.TestCase):
             live, _ = core.liveness_gate(self.role, self.check(date(2026, 10, 1), status), RUN)
             self.assertEqual(live["value"], factor)
             self.assertEqual(live["label"], "your-input")
+
+
+AI_BY = "Claude (chat) web search, not human-verified"
+
+
+def write_checks(rows, header=None):
+    """Write a temporary posting-check CSV (outside the repo) and return its path."""
+    # column order: company, role_type, url, date_checked, status, checked_by,
+    #               what_was_seen, tool_result, tool_reason, tool_run_date
+    header = header or core.POSTING_COLUMNS + core.POSTING_OPTIONAL
+    fh = tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="", encoding="utf-8")
+    w = csv.writer(fh, lineterminator="\n")
+    w.writerow(header)
+    w.writerows(rows)
+    fh.close()
+    return Path(fh.name)
+
+
+class CheckedByTest(unittest.TestCase):
+    """CHANGE-BRIEF R3: who did the posting check decides whether G4 is cleared."""
+
+    def plan_with(self, rows):
+        checks, rejected = core.load_posting_checks(write_checks(rows))
+        persona = core.load_persona(FIX / "persona-meera-krishnan.json")
+        return core.build_plan(core.load_companies(FIX / "companies-slice.csv"), persona, checks, RUN,
+                               rejected_checks=rejected)
+
+    def test_ai_check_is_scored_but_g4_not_cleared_and_run_is_provisional(self):
+        plan = self.plan_with([["Alpha Data Example", "data_engineer", "https://example.com/a", "2026-10-02", "open",
+                                AI_BY, "snapshot", "expired", "HTTP 404", "2026-10-02"]])
+        role = [r for r in plan["scoreable"] if r["role_id"] == "alphadataexample:data_engineer"][0]
+        live = role["liveness"]["factor"]
+        self.assertEqual(live["label"], "model-judgment")
+        self.assertFalse(live["g4_human_cleared"])
+        self.assertEqual(live["what_was_seen"]["label"], "model-judgment")
+        self.assertTrue(plan["provisional"])
+        self.assertEqual(plan["g4_human_gate"]["not_cleared_role_ids"], ["alphadataexample:data_engineer"])
+        self.assertTrue(plan["headline_warnings"][0].startswith("G4 human liveness gate NOT cleared"))
+        self.assertIn("provisional", plan["headline_warnings"][0])
+        self.assertEqual(core.to_scorer_record(role)["liveness"]["source"], "model-judgment")
+
+    def test_tool_result_is_record_with_run_source(self):
+        plan = self.plan_with([["Alpha Data Example", "data_engineer", "https://example.com/a", "2026-10-02", "open",
+                                AI_BY, "snapshot", "expired", "HTTP 404", "2026-10-02"]])
+        live = plan["scoreable"][0]["liveness"]["factor"]
+        self.assertEqual(live["tool_result"], {"value": "expired", "label": "record",
+                                               "source": "npm run ats:liveness, 2026-10-02"})
+        self.assertEqual(live["tool_reason"]["value"], "HTTP 404")
+        self.assertEqual(live["value"], 1.0, "status drives the factor; the tool result is a cross-check only")
+        reasons = [c["reason"] for c in plan["cannot_verify"]]
+        self.assertTrue(any("no 'not found' result" in r for r in reasons))
+        self.assertTrue(any("'insufficient content' as expired" in r for r in reasons))
+
+    def test_human_check_clears_g4(self):
+        plan = fixture_plan()
+        self.assertFalse(plan["provisional"])
+        self.assertEqual(plan["headline_warnings"], [])
+        self.assertTrue(all(r["liveness"]["factor"]["g4_human_cleared"] for r in plan["scoreable"]))
+        self.assertTrue(all(r["liveness"]["factor"]["label"] == "your-input" for r in plan["scoreable"]))
+        self.assertFalse(any(c["company_key"] is None for c in plan["cannot_verify"]),
+                         "tool limits only apply when ats:liveness results are used")
+
+    def test_blank_checked_by_is_rejected(self):
+        checks, rejected = core.load_posting_checks(write_checks(
+            [["Alpha Data Example", "data_engineer", "https://example.com/a", "2026-10-02", "open", "", "", "", "", ""]]))
+        self.assertEqual(checks, [])
+        self.assertIn("checked_by blank", rejected[0]["reason"])
+
+    def test_tool_result_without_run_date_is_rejected(self):
+        _, rejected = core.load_posting_checks(write_checks(
+            [["Alpha Data Example", "data_engineer", "https://example.com/a", "2026-10-02", "open", AI_BY, "",
+              "expired", "HTTP 404", ""]]))
+        self.assertIn("tool_run_date required", rejected[0]["reason"])
+
+    def test_unknown_column_halts(self):
+        with self.assertRaisesRegex(core.GateHalt, "unknown \\['vibe'\\]"):
+            core.load_posting_checks(write_checks([], header=core.POSTING_COLUMNS + ["vibe"]))
+
+    def test_submission_input_file_loads_as_model_judgment(self):
+        path = core.REPO / "course/2026fa/submissions/Sreevarshann/inputs/posting-checks.csv"
+        checks, rejected = core.load_posting_checks(path)
+        self.assertEqual(rejected, [])
+        self.assertEqual(len(checks), 5)
+        self.assertTrue(all(c["label"] == "model-judgment" and not c["human_checked"] for c in checks))
 
 
 class SponsorshipTest(unittest.TestCase):
