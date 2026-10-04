@@ -20,7 +20,7 @@ A recipe and working prototype that sorts H-1B-sponsoring companies into apply, 
       python3 scripts/contrib/2026fa/Sreevarshann-newgrad-de-ml-optwindow/run.py --run-date 2026-10-02 --out-root /tmp/reallocation-demo
 
 - **GitHub repository / branch / PR URL:** https://github.com/Sreevarshann/the-reallocation-engine / contrib/2026fa-Sreevarshann-newgrad-de-ml-optwindow / PR: https://github.com/nikbearbrown/the-reallocation-engine/pull/32
-- **Submitted commit SHA:** 98188e1c9519191fb810f3288ff2ed90875ab2ca (tip under review when the PR was opened; this SUBMISSION.md update is the only later commit)
+- **Submitted commit SHA:** e187b2ddd3350f11d06ba1f4622867ccdc09415d (content under review; the only later commit updates SUBMISSION.md itself)
 - **Lifecycle stage claimed:** DRAFT (prototype runs end to end on shipped sample data; held at DRAFT per SNICKERDOODLE lines 58–59)
 - **Summary of my changes:**
   - A plan of record (`CHANGE-BRIEF.md`, revisions R1–R5) and a recipe + card pair under `recipes/cases/2026fa/`, held at DRAFT with 5 typed TODO items.
