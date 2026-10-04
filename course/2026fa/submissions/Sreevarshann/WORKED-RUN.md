@@ -249,7 +249,7 @@ Next improvement: a human verifies the postings for the 22 Proven-tier entry-eli
 - **Same-date tie took the first row in file order**, letting an AI check beat a human one — tie-break added (CHANGE-BRIEF R5, commit `806ce8a`).
 - **Timeline gate effectively a halt for this persona** — found, recorded as a prediction miss, kept by decision (CHANGE-BRIEF R2, commit `e06121c`); recompute proposed.
 - **Interpreter symlink loop** — the committed run fell through to Anaconda's Python; link restored, clean rerun reproduced identical scorer outputs.
-- **Commit author email** was a machine `.local` address — re-authored to the GitHub noreply address before any push.
+- **Commit author email** was a machine local hostname email — re-authored to the GitHub noreply address before any push.
 - **PII-scan finding introduced in FRICTIONAL.md** (a quoted npm author email) — amended before any push; branch-history scan clean.
 - **Break d: a missing input file raised a raw traceback** — `run.py` now checks every input exists before hashing and halts cleanly with a run log (commit `2cb57e8`, test `test_missing_input_file_halts_cleanly`).
 

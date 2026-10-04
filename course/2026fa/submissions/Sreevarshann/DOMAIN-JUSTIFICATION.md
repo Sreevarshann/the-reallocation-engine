@@ -4,7 +4,7 @@
 *(Drafted by Claude (chat) from my decisions during the session; reviewed and confirmed by me.)* This recipe is for an F-1 master's new graduate (fictional persona) whose OPT has not started, targeting entry-level Data Engineer and ML Engineer roles. It makes two things visible a new grad can't easily see: which companies have sponsored H-1Bs for these titles *at a non-senior level*, and whether a posting that looks open is actually live.
 
 ## Who and what situation
-An international MS student in data science (STEM) on F-1, graduating 2026-12-12, OPT starting 2027-01-15, with a 90-day unemployment window ending 2027-04-15. Targets: Data Engineer and ML Engineer, any company size or industry. The persona and all dates are fictional; the situation type (F-1 new grad, OPT not started, Data/ML Engineer roles) is the one this recipe is designed for.
+An international MS student in data science (STEM) on F-1, graduating 2026-12-12, OPT starting 2027-01-15, with a 90-day unemployment window ending 2027-04-15. Targets: Data Engineer and ML Engineer, any company size or industry. The persona and all dates are fictional.
 
 ## The information asymmetry
 A new grad can't easily tell (1) whether a company's sponsorship history includes roles at their level or only senior ones — 50 of the 114 matching sponsors sponsored only senior titles for these roles; and (2) whether a posting is real — in this run, an AI search reported an AMGEN Data Engineer role as open, and the engine's liveness tool found the page returned HTTP 404. Both errors cost a student with a 90-day clock real application time.

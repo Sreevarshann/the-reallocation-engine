@@ -62,7 +62,7 @@ This is my honest log of attempts, checks, and human vs. AI contributions for th
 - **Step:** First commit — privacy check
 - **What I tried:** Committing the candidate analysis.
 - **What I expected:** A clean commit.
-- **What happened:** Claude Code noticed the commit author email was my machine's .local address, which carries my name and machine and isn't caught by pii-scan (it doesn't check commit metadata). The working-tree pii-scan also flags an npm package author's email address in the tracked package-lock.json on main — not my file.
+- **What happened:** Claude Code noticed the commit author email was my machine's local hostname email, which carries my name and machine and isn't caught by pii-scan (it doesn't check commit metadata). The working-tree pii-scan also flags an npm package author's email address in the tracked package-lock.json on main — not my file.
 - **What I checked or changed:** Set my GitHub noreply address for this repo only, re-authored the commit (abc26d0 → da4f71b), and confirmed with git log that only the noreply address remains in branch history.
 - **Human vs AI:** Claude Code caught the email issue; I chose the fix and provided the address.
 - **Trace:** da4f71b, git log main..HEAD --format='%ae'.
